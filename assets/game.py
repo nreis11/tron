@@ -7,25 +7,23 @@ import random
 from assets import particle
 from assets import player
 
-# Currently set to absolute key bindings.
-
 
 class Game(object):
     """Creates screen, draws border, creates all sprites, maps keys, draws score, and
     runs game loop."""
 
-    # relative_controls = False
-
     def __init__(self, width=None, height=None, relative_controls=False):
         self.width = width
         self.height = height
         self.relative_controls = relative_controls
+        self.game_on = True
+        self.testing = True
+        turtle.setundobuffer(1)
 
     def screen_size(self):
         """Only used if script runs directly."""
-        choices = ["small", "medium", "large"]
         size = ""
-        while size not in choices:
+        while True:
             size = input("Grid size: (Small, Medium, Large) ").lower().strip()
             if size == "small":
                 return (640, 480)
@@ -47,31 +45,28 @@ class Game(object):
         self.screen.title("TURTLETRON")
         self.screen.tracer(0)
 
-    def draw_border(self):
+    def create_border(self):
         """Border is drawn from the width and height, starting in upper
         right hand corner. Each side is 50 pixels from the edge of the screen.
         The border coordinates will be used for border detection as well."""
         self.x_boundary = (self.width / 2) - 50
         self.y_boundary = (self.height / 2) - 50
-        self.pen.color("blue")
-        self.pen.penup()
-        self.pen.setposition(self.x_boundary, self.y_boundary)
-        self.pen.pendown()
-        self.pen.pensize(3)
-        self.pen.speed(0)
-        self.pen.setheading(180)  # Start drawing west
+        self.border_pen.penup()
+        self.border_pen.setposition(self.x_boundary, self.y_boundary)
+        self.border_pen.pendown()
+        self.border_pen.setheading(180)  # Start drawing west
         # Square is drawn
         for side in range(4):
             # Vertical
             if side % 2:
-                self.pen.forward(self.height - 100)
-                self.pen.left(90)
+                self.border_pen.forward(self.height - 100)
+                self.border_pen.left(90)
             # Horizontal
             else:
-                self.pen.forward(self.width - 100)
-                self.pen.left(90)
-        self.pen.penup()
-        self.pen.hideturtle()
+                self.border_pen.forward(self.width - 100)
+                self.border_pen.left(90)
+        self.border_pen.penup()
+        self.border_pen.hideturtle()
 
     def random_coord(self):
         """Generates random coordinate within playable area with 50 px padding from boundary"""
@@ -83,8 +78,8 @@ class Game(object):
         """Checks if light cycle is out of bounds using border coord.
         Deviation of 3 on edge to cosmetically match impact."""
         if (
-            abs(player.xcor()) > abs(self.x_boundary) - 3
-            or abs(player.ycor()) > abs(self.y_boundary) - 3
+            abs(player.xcor()) > abs(self.x_boundary) - self.border_pen.pensize()
+            or abs(player.ycor()) > abs(self.y_boundary) - self.border_pen.pensize()
         ):
             return True
 
@@ -132,7 +127,6 @@ class Game(object):
     def create_particles(self):
         """Creates particles list. All particles act in same manner."""
         self.particles = []
-        # Number of particles
         for i in range(20):
             self.particles.append(particle.Particle())
 
@@ -245,7 +239,7 @@ class Game(object):
         if os.name == "posix":
             os.system("killall afplay")
             os.system("afplay sounds/gameplay.m4a&")
-            # os.system("say grid is live!")
+            os.system("say grid is live!&")
 
     def countdown(self):
         for num in range(3, 0, -1):
@@ -254,17 +248,19 @@ class Game(object):
                 str(num), align="center", font=("Verdana", 36, "bold")
             )
             if os.name == "posix":
-                os.system(f"say {num}")
+                os.system(f"say {num}&")
             time.sleep(1)
             self.game_text_pen.clear()
 
     def create_pens(self):
-        """Self.pen is for the border and self.score_pen is naturally,for the score
-        and winner."""
-        self.pen = turtle.Turtle()
+        """Self.pen is for the border."""
+        self.border_pen = turtle.Turtle()
         self.score_pen = turtle.Turtle()
         self.game_text_pen = turtle.Turtle()
 
+        self.border_pen.speed(0)
+        self.border_pen.pensize(3)
+        self.border_pen.color("blue")
         self.game_text_pen.hideturtle()
         self.score_pen.penup()
         self.score_pen.hideturtle()
@@ -275,18 +271,18 @@ class Game(object):
     def create_assets(self):
         self.create_screen()
         self.create_pens()
-        self.draw_border()
+        self.create_border()
         self.create_player()
         self.create_particles()
         self.draw_score()
-        self.countdown()
-        self.start_bgm()
+        if not self.testing:
+            self.countdown()
+            self.start_bgm()
 
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
         run continuously until a player runs out of lives."""
         self.create_assets()
-        self.game_on = True
 
         while self.game_on:
             # Updates screen only when loop is complete

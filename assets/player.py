@@ -4,7 +4,7 @@ import random
 
 class Player(turtle.Turtle):
 
-    CRASHED = "crashed"`
+    CRASHED = "crashed"
     READY = "ready"
 
     def __init__(self, name, start_x, start_y):

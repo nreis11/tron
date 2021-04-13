@@ -30,9 +30,7 @@ class MainMenu(object):
         self.screen.tracer(0)
 
     def set_cursor_master(self):
-        """Runs in start menu loop. Controlled by
-        cursor_up and cursor_down functions.
-        """
+        """Runs in start menu loop. Controlled by cursor_up and cursor_down functions."""
         if self.current_screen == "main":
             self.set_cursor_main()
         elif self.current_screen == "grid_size":
