@@ -12,15 +12,14 @@ class Player(turtle.Turtle):
         self.penup()
         self.shape("square")
         self.color(color)
-        self.shapesize(stretch_wid=0.3, stretch_len=1, outline=None)
+        self.shapesize(stretch_wid=0.2, stretch_len=0.8, outline=None)
         self.name = name
         self.speed(0)
         self.fwd_speed = 1
         self.pensize(2)
         self.setposition(start_x, start_y)
         self.prev_pos = (start_x, start_y)
-        self.curr_pos = (start_x, start_y)
-        self.lives = 2
+        self.lives = 1
         self.status = Player.READY
         self.pendown()
 
@@ -44,10 +43,11 @@ class Player(turtle.Turtle):
             self.fwd_speed -= 1
             self.forward(self.fwd_speed)  # Needs to be run only if speed changes
 
-    def set_coord(self, x, y):
+    def set_coord(self):
         """Sets grid coordinates. Keeps track of prev and current."""
-        self.prev_pos = self.curr_pos
-        self.curr_pos = (x, y)
+        prev_x = int(self.xcor())
+        prev_y = int(self.ycor())
+        self.prev_pos = (prev_x, prev_y)
 
     def clear_lightcycle(self):
         """Removes light cycle from screen"""
@@ -66,6 +66,5 @@ class Player(turtle.Turtle):
         self.setposition(x, y)
         self.setheading(random.randrange(0, 360, 90))
         self.prev_pos = (x, y)
-        self.curr_pos = (x, y)
         self.fwd_speed = 1
         self.pendown()

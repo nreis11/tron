@@ -49,8 +49,8 @@ class Game(object):
         """Border is drawn from the width and height, starting in upper
         right hand corner. Each side is 50 pixels from the edge of the screen.
         The border coordinates will be used for border detection as well."""
-        self.x_boundary = (self.width / 2) - self.out_of_bounds_length
-        self.y_boundary = (self.height / 2) - self.out_of_bounds_length
+        self.x_boundary = (self.width // 2) - self.out_of_bounds_length
+        self.y_boundary = (self.height // 2) - self.out_of_bounds_length
         self.border_pen.penup()
         self.border_pen.setposition(self.x_boundary, self.y_boundary)
         self.border_pen.pendown()
@@ -76,36 +76,38 @@ class Game(object):
 
     def is_outside_boundary(self, player):
         """Checks if light cycle is out of bounds using border coord."""
-        if (
+        return (
             abs(player.xcor()) > abs(self.x_boundary) - self.border_pen.pensize()
             or abs(player.ycor()) > abs(self.y_boundary) - self.border_pen.pensize()
-        ):
-            return True
+        )
 
     def position_range_adder(self, player):
         """If speed is > 1, the positions aren't recorded between the speed gap. Therefore,
         this function is needed to fill in the gaps and append the missing positions"""
         prev_xcor, prev_ycor = player.prev_pos  # tuple unpacking
-        curr_xcor, curr_ycor = player.curr_pos
-        positions_range = []
+        curr_xcor = int(player.xcor())
+        curr_ycor = int(player.ycor())
+        positions = []
         # X coord are changing and the difference between them is greater than 1
-        if abs(prev_xcor - curr_xcor) > 1:
-            start = min(prev_xcor, curr_xcor) + 1
+        if prev_xcor != curr_xcor:
+            start = min(prev_xcor, curr_xcor)
             end = max(prev_xcor, curr_xcor)
             for x_position in range(start, end):
                 coord = (x_position, prev_ycor)
-                positions_range.append(coord)
+                positions.append(coord)
         # Y coord are changing and the difference between them is greater than 1
-        elif abs(prev_ycor - curr_ycor) > 1:
-            start = min(prev_ycor, curr_ycor) + 1
+        elif prev_ycor != curr_ycor:
+            start = min(prev_ycor, curr_ycor)
             end = max(prev_ycor, curr_ycor)
             for y_position in range(start, end):
                 coord = (prev_xcor, y_position)
-                positions_range.append(coord)
-        # Unique coordinates to add
-        if positions_range:
-            for x, y in positions_range:
+                positions.append(coord)
+        # Translate to grid coordinates
+        positions = [self.get_grid_coord(x, y) for x, y in positions]
+        if positions and player.name == "P1":
+            for x, y in positions:
                 print(f"Adding {x},{y}")
+        return positions
 
     def create_player(self, number=2):
         """Two players are always created. P1 is blue.
@@ -127,18 +129,8 @@ class Game(object):
             particle.change_color(player)
             particle.explode(player.xcor(), player.ycor())
 
-    # def is_collision_with_enemy(self, player):
-    #     """Collision check with other player."""
-    #     # Get the current position, iterate through the positions list, and don't check its own
-    #     # positions, check if position is in list
-    #     for i in range(len(self.players)):
-    #         if player.name != self.players[i].name:
-    #             for position in player.positions[-5:]:
-    #                 if position in self.players[i].positions:
-    #                     return True
-
-    def is_collision(self, xcor, ycor):
-        return self.grid[ycor][xcor]
+    def is_collision(self, x, y):
+        return self.grid[y][x]
 
     def set_relative_keyboard_bindings(self):
         """Maps relative controls to player movement."""
@@ -236,9 +228,9 @@ class Game(object):
             time.sleep(1)
             self.game_text_pen.clear()
 
-    def get_grid_coord(self, player):
-        x = int(player.xcor() + self.width / 2 - self.out_of_bounds_length)
-        y = int(player.ycor() + self.height / 2 - self.out_of_bounds_length)
+    def get_grid_coord(self, x, y):
+        x = int(x + (self.width / 2) - self.out_of_bounds_length)
+        y = int(y + (self.height / 2) - self.out_of_bounds_length)
         return (x, y)
 
     def create_pens(self):
@@ -269,6 +261,7 @@ class Game(object):
             self.start_bgm()
 
     def end_game(self):
+        self.game_on = False
         self.display_winner()
         time.sleep(2)
         self.screen.clear()
@@ -292,19 +285,18 @@ class Game(object):
             turtle.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
+                player.set_coord()
                 player.forward(player.fwd_speed)
-                x, y = self.get_grid_coord(player)
-                player.set_coord(x, y)
+                x, y = self.get_grid_coord(player.xcor(), player.ycor())
 
                 # Detect collision with boundary, self, or enemy
                 if self.is_outside_boundary(player) or self.is_collision(x, y):
                     player.lose_life()
                 else:
-                    self.grid[y][x] = 1
-
-                # Add missing positions to bridge position gaps
-                if player.fwd_speed > 1:
-                    self.position_range_adder(player)
+                    # Add missing positions to bridge position gaps
+                    positions = self.position_range_adder(player)
+                    for x, y in positions:
+                        self.grid[y][x] = 1
 
             # Particle movement
             for particle in self.particles:
@@ -320,7 +312,7 @@ class Game(object):
                     self.draw_score()
 
             if self.is_game_over():
-                self.game_on = False
+                self.end_game()
 
 
 if __name__ == "__main__":
