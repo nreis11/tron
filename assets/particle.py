@@ -5,12 +5,11 @@ import random
 class Particle(turtle.Turtle):
     """This class is used to create particle effects when there is a crash."""
 
-    def __init__(self, spriteshape="square", color="white", start_x=0, start_y=0):
-        turtle.Turtle.__init__(self, shape=spriteshape)
+    def __init__(self):
+        turtle.Turtle.__init__(self, shape="square")
         self.shapesize(stretch_wid=0.1, stretch_len=0.3, outline=None)
         self.speed(0)  # Refers to animation speed
         self.penup()
-        self.color(color)
         self.fwd_speed = 10
         self.hideturtle()
         self.frame = 0

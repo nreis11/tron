@@ -7,19 +7,22 @@ class Player(turtle.Turtle):
     CRASHED = "crashed"
     READY = "ready"
 
-    def __init__(self, name, start_x, start_y):
+    def __init__(self, name, start_x, start_y, color):
         super(Player, self).__init__()
+        self.penup()
+        self.shape("square")
+        self.color(color)
+        self.shapesize(stretch_wid=0.3, stretch_len=1, outline=None)
         self.name = name
         self.speed(0)
         self.fwd_speed = 1
         self.pensize(2)
-        self.start_x = start_x
-        self.start_y = start_y
         self.setposition(start_x, start_y)
-        self.positions = []
-        self.coord = (self.start_x, self.start_y)
-        self.lives = 5
-        self.status = self.READY
+        self.prev_pos = (start_x, start_y)
+        self.curr_pos = (start_x, start_y)
+        self.lives = 2
+        self.status = Player.READY
+        self.pendown()
 
     def turn_left(self):
         """90 Degree left turn."""
@@ -41,12 +44,10 @@ class Player(turtle.Turtle):
             self.fwd_speed -= 1
             self.forward(self.fwd_speed)  # Needs to be run only if speed changes
 
-    def convert_coord_to_int(self):
-        """Convert coordinates to integers for more accurate collision detection"""
-        x, y = self.pos()
-        x = int(x)
-        y = int(y)
-        self.coord = (x, y)
+    def set_coord(self, x, y):
+        """Sets grid coordinates. Keeps track of prev and current."""
+        self.prev_pos = self.curr_pos
+        self.curr_pos = (x, y)
 
     def clear_lightcycle(self):
         """Removes light cycle from screen"""
@@ -56,14 +57,15 @@ class Player(turtle.Turtle):
     def lose_life(self):
         """Takes away one life from player"""
         self.lives -= 1
-        self.status = self.CRASHED
+        self.status = Player.CRASHED
 
     def respawn(self, x, y):
         """Respawns light cycle to random coord passed as args, resets speed to 1, and
         resets the position list."""
-        self.status = self.READY
+        self.status = Player.READY
         self.setposition(x, y)
         self.setheading(random.randrange(0, 360, 90))
+        self.prev_pos = (x, y)
+        self.curr_pos = (x, y)
         self.fwd_speed = 1
         self.pendown()
-        self.positions = []
