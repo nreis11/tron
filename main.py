@@ -140,11 +140,11 @@ class MainMenu(object):
         for the grid size screen.
         """
         if self.pen.cursor_pos == 1:
-            width, height = (640, 480)
-        elif self.pen.cursor_pos == 2:
             width, height = (800, 600)
-        elif self.pen.cursor_pos == 3:
+        elif self.pen.cursor_pos == 2:
             width, height = (1024, 768)
+        elif self.pen.cursor_pos == 3:
+            width, height = (1280, 960)
         self.screen.clear()
         self.pen.clear()
         if os.name == "posix":

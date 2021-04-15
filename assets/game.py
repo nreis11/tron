@@ -5,11 +5,11 @@ import time
 import os
 import random
 
-# from assets import particle
-# from assets import player
+from assets import particle
+from assets import player
 
-import particle
-import player
+# import particle
+# import player
 
 
 class Game(object):
@@ -28,7 +28,7 @@ class Game(object):
         self.players = []
         self.particles = []
         self.game_on = True
-        self.testing = True
+        self.testing = False
         self.create_assets()
 
     def create_grid(self):
@@ -84,30 +84,34 @@ class Game(object):
     def position_range_adder(self, player):
         """If speed is > 1, the positions aren't recorded between the speed gap. Therefore,
         this function is needed to fill in the gaps and append the missing positions"""
-        prev_xcor, prev_ycor = player.prev_pos  # tuple unpacking
+        prev_xcor, prev_ycor = player.prev_pos
         curr_xcor = int(player.xcor())
         curr_ycor = int(player.ycor())
         positions = []
-        # X coord are changing and the difference between them is greater than 1
         if prev_xcor != curr_xcor:
             start = min(prev_xcor, curr_xcor)
             end = max(prev_xcor, curr_xcor)
-            for x_position in range(start, end):
+            for x_position in range(start + 1, end):
                 coord = (x_position, prev_ycor)
                 positions.append(coord)
-        # Y coord are changing and the difference between them is greater than 1
         elif prev_ycor != curr_ycor:
             start = min(prev_ycor, curr_ycor)
             end = max(prev_ycor, curr_ycor)
-            for y_position in range(start, end):
+            for y_position in range(start + 1, end):
                 coord = (prev_xcor, y_position)
                 positions.append(coord)
         # Translate to grid coordinates
         positions = [self.get_grid_coord(x, y) for x, y in positions]
-        if positions and player.name == "P1":
-            for x, y in positions:
-                print(f"Adding {x},{y}")
-        return positions
+        # if positions and player.name == "P1":
+        #     for x, y in positions:
+        #         print(f"Adding {x},{y}")
+        #     print("NEXT FRAME")
+        for x, y in positions:
+            if self.is_collision(x, y):
+                player.lose_life()
+                return
+            else:
+                self.grid[y][x] = 1
 
     def create_player(self, number=2):
         """Two players are always created. P1 is blue.
@@ -181,22 +185,20 @@ class Game(object):
         pen is needed because the clear function is called every time the score
         is updated."""
         self.score_pen.clear()
-        self.score_pen.setposition((self.width / -2) + 75, (self.height / 2) - 40)
-        self.score_pen.pendown()
-        p1lives = "P1: %s" % (self.players[0].lives * "*")
-        p2lives = "P2: %s" % (self.players[1].lives * "*")
-        self.score_pen.write(p1lives, font=("Verdana", 18, "bold"))
-        self.score_pen.penup()
-        self.score_pen.setposition((self.width / -2) + 205, (self.height / 2) - 40)
-        self.score_pen.pendown()
-        self.score_pen.write(p2lives, font=("Verdana", 18, "bold"))
-        self.score_pen.penup()
+        x_offset = 75
+        for i, player in enumerate(self.players):
+            self.score_pen.setposition(
+                (self.width / -2) + x_offset, (self.height / 2) - 40
+            )
+            self.score_pen.pendown()
+            lives = f"P{i+1}: {player.lives * '*'}"
+            self.score_pen.write(lives, font=("Verdana", 18, "bold"))
+            self.score_pen.penup()
+            x_offset += 125
 
     def is_game_over(self):
         """Checks to see if any player has run out of lives."""
-        for player in self.players:
-            if player.lives == 0:
-                return True
+        return len(list(filter(lambda player: player.lives > 0, self.players))) == 1
 
     def display_winner(self):
         """Once game loop finishes, this runs to display the winner."""
@@ -285,7 +287,7 @@ class Game(object):
             turtle.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
-                player.set_coord()
+                player.set_prev_coord()
                 player.forward(player.fwd_speed)
                 x, y = self.get_grid_coord(player.xcor(), player.ycor())
 
@@ -294,9 +296,8 @@ class Game(object):
                     player.lose_life()
                 else:
                     # Add missing positions to bridge position gaps
-                    positions = self.position_range_adder(player)
-                    for x, y in positions:
-                        self.grid[y][x] = 1
+                    self.position_range_adder(player)
+                    self.grid[y][x] = 1
 
             # Particle movement
             for particle in self.particles:
@@ -308,11 +309,10 @@ class Game(object):
                     self.particles_explode(player)
                     if os.name == "posix":
                         os.system("afplay sounds/explosion.wav&")
-                    self.reset_grid()
                     self.draw_score()
-
-            if self.is_game_over():
-                self.end_game()
+                    if self.is_game_over():
+                        self.end_game()
+                    self.reset_grid()
 
 
 if __name__ == "__main__":

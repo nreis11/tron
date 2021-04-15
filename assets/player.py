@@ -19,7 +19,7 @@ class Player(turtle.Turtle):
         self.pensize(2)
         self.setposition(start_x, start_y)
         self.prev_pos = (start_x, start_y)
-        self.lives = 1
+        self.lives = 5
         self.status = Player.READY
         self.pendown()
 
@@ -43,8 +43,8 @@ class Player(turtle.Turtle):
             self.fwd_speed -= 1
             self.forward(self.fwd_speed)  # Needs to be run only if speed changes
 
-    def set_coord(self):
-        """Sets grid coordinates. Keeps track of prev and current."""
+    def set_prev_coord(self):
+        """Sets prev coordinates."""
         prev_x = int(self.xcor())
         prev_y = int(self.ycor())
         self.prev_pos = (prev_x, prev_y)
