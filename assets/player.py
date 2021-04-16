@@ -17,10 +17,12 @@ class Player(turtle.Turtle):
         self.speed(0)
         self.fwd_speed = 1
         self.pensize(2)
+        self.setheading(random.randrange(0, 360, 90))
         self.setposition(start_x, start_y)
         self.prev_pos = (start_x, start_y)
-        self.lives = 5
+        self.lives = 3
         self.status = Player.READY
+        self.is_ai = False
         self.pendown()
 
     def turn_left(self):

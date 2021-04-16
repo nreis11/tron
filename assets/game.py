@@ -5,11 +5,13 @@ import time
 import os
 import random
 
-from assets import particle
-from assets import player
+# from assets import particle
+# from assets import player
+# from assets import ai
 
-# import particle
-# import player
+import particle
+import player
+import ai
 
 
 class Game(object):
@@ -18,17 +20,30 @@ class Game(object):
 
     GAME_FONT = ("Verdana", 36, "bold")
 
-    def __init__(self, width=1200, height=800, relative_controls=False):
+    def __init__(
+        self,
+        width=1200,
+        height=800,
+        relative_controls=False,
+        humans=1,
+        bots=1,
+        testing=False,
+        difficulty=1,
+    ):
         turtle.setundobuffer(1)
         self.width = width
         self.height = height
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
         self.grid = self.create_grid()
+        self.humans = humans
+        self.bots = bots
+        self.difficulty = difficulty
         self.players = []
         self.particles = []
         self.game_on = True
-        self.testing = False
+        self.testing = testing
+        self.screen = turtle.Screen()
         self.create_assets()
 
     def create_grid(self):
@@ -39,7 +54,6 @@ class Game(object):
     def create_screen(self):
         """If run directly, creates screen based on user choice from self.screen_size().
         Otherwise, screen is automatically created with arguments from main.py script."""
-        self.screen = turtle.Screen()
         self.screen.bgcolor("black")
         self.screen.setup(self.width, self.height, startx=None, starty=None)
         self.screen.title("TURTLETRON")
@@ -102,10 +116,6 @@ class Game(object):
                 positions.append(coord)
         # Translate to grid coordinates
         positions = [self.get_grid_coord(x, y) for x, y in positions]
-        # if positions and player.name == "P1":
-        #     for x, y in positions:
-        #         print(f"Adding {x},{y}")
-        #     print("NEXT FRAME")
         for x, y in positions:
             if self.is_collision(x, y):
                 player.lose_life()
@@ -113,14 +123,20 @@ class Game(object):
             else:
                 self.grid[y][x] = 1
 
-    def create_player(self, number=2):
+    def create_player(self):
         """Two players are always created. P1 is blue.
         P2 is Yellow, P3 is Red, P4 is Green"""
-        colors = ["#40BBE3", "#E3E329", "#ff0000", "#33cc33"]
+        colors = ["#33cc33", "#ff0000", "#E3E329", "#40BBE3"]
 
-        for i in range(number):
+        for i in range(self.humans):
             x, y = self.get_random_coord()
-            self.players.append(player.Player("P" + str(i + 1), x, y, colors[i]))
+            self.players.append(player.Player("P" + str(i + 1), x, y, colors.pop()))
+
+        for i in range(self.bots):
+            x, y = self.get_random_coord()
+            self.players.append(
+                ai.Ai("COM" + str(i + 1), x, y, colors.pop(), self.difficulty)
+            )
 
     def create_particles(self):
         """Populates particles list. All particles act in same manner."""
@@ -163,14 +179,15 @@ class Game(object):
         elif self.players[0].heading() == 270:  # South
             self.abs_key_mapper(self.players[0], "d", "a", "s", "w")
         # Set P2 keyboard bindings
-        if self.players[1].heading() == 0:  # East
-            self.abs_key_mapper(self.players[1], "Up", "Down", "Right", "Left")
-        elif self.players[1].heading() == 90:  # North
-            self.abs_key_mapper(self.players[1], "Left", "Right", "Up", "Down")
-        elif self.players[1].heading() == 180:  # West
-            self.abs_key_mapper(self.players[1], "Down", "Up", "Left", "Right")
-        elif self.players[1].heading() == 270:  # South
-            self.abs_key_mapper(self.players[1], "Right", "Left", "Down", "Up")
+        if self.humans >= 2:
+            if self.players[1].heading() == 0:  # East
+                self.abs_key_mapper(self.players[1], "Up", "Down", "Right", "Left")
+            elif self.players[1].heading() == 90:  # North
+                self.abs_key_mapper(self.players[1], "Left", "Right", "Up", "Down")
+            elif self.players[1].heading() == 180:  # West
+                self.abs_key_mapper(self.players[1], "Down", "Up", "Left", "Right")
+            elif self.players[1].heading() == 270:  # South
+                self.abs_key_mapper(self.players[1], "Right", "Left", "Down", "Up")
 
     def abs_key_mapper(self, player, left, right, accel, decel):
         """Maps passed in args to player controls"""
@@ -191,13 +208,13 @@ class Game(object):
                 (self.width / -2) + x_offset, (self.height / 2) - 40
             )
             self.score_pen.pendown()
-            lives = f"P{i+1}: {player.lives * '*'}"
+            lives = f"{player.name}: {player.lives * '*'}"
             self.score_pen.write(lives, font=("Verdana", 18, "bold"))
             self.score_pen.penup()
             x_offset += 125
 
     def is_game_over(self):
-        """Checks to see if any player has run out of lives."""
+        """Checks to see if there's only one player left."""
         return len(list(filter(lambda player: player.lives > 0, self.players))) == 1
 
     def display_winner(self):
@@ -213,6 +230,10 @@ class Game(object):
             x, y = self.get_random_coord()
             player.clear_lightcycle()
             player.respawn(x, y)
+            if self.testing and player.is_ai:
+                player.test_draw_length = 10
+                player.test_frame = 0
+
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -221,14 +242,12 @@ class Game(object):
             os.system("afplay sounds/gameplay.m4a&")
             os.system("say grid is live!&")
 
-    def countdown(self):
-        for num in range(3, 0, -1):
-            self.game_text_pen.pendown()
-            self.game_text_pen.write(str(num), align="center", font=Game.GAME_FONT)
-            if os.name == "posix":
-                os.system(f"say {num}&")
-            time.sleep(1)
-            self.game_text_pen.clear()
+    def countdown(self, num):
+        self.game_text_pen.pendown()
+        self.game_text_pen.write(str(num), align="center", font=Game.GAME_FONT)
+        if os.name == "posix":
+            os.system(f"say {num}&")
+        self.game_text_pen.clear()
 
     def get_grid_coord(self, x, y):
         x = int(x + (self.width / 2) - self.out_of_bounds_length)
@@ -259,16 +278,95 @@ class Game(object):
         self.create_particles()
         self.draw_score()
         if not self.testing:
-            self.countdown()
+            for num in range(3, 0, -1):
+                turtle.ontimer(self.countdown(num), 1000)
             self.start_bgm()
 
     def end_game(self):
         self.game_on = False
-        self.display_winner()
-        time.sleep(2)
+        turtle.ontimer(self.display_winner(), 2000)
         self.screen.clear()
         if os.name == "posix":
             os.system("killall afplay")
+
+    def is_near_boundary(self, ai):
+        if ai.heading() == 0 or ai.heading() == 180:
+            return (
+                abs(ai.xcor())
+                > abs(self.x_boundary)
+                - ai.min_distance_collision
+                - self.border_pen.pensize()
+            )
+        elif ai.heading() == 90 or ai.heading() == 270:
+            return (
+                abs(ai.ycor())
+                > abs(self.y_boundary)
+                - ai.min_distance_collision
+                - self.border_pen.pensize()
+            )
+
+    def make_turn_based_on_collision_distance(self, ai):
+        """Get flanking distances to collision."""
+        x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
+        i = 1
+        if ai.heading() == 0:
+            while i <= ai.min_distance_collision:
+                if self.is_collision(x, y + i):
+                    ai.turn_right()
+                    return
+                if self.is_collision(x, y - i):
+                    ai.turn_left()
+                    return
+                i += 1
+        elif ai.heading() == 90:
+            while i <= ai.min_distance_collision:
+                if self.is_collision(x - i, y):
+                    ai.turn_right()
+                    return
+                if self.is_collision(x + i, y):
+                    ai.turn_left()
+                    return
+                i += 1
+        elif ai.heading() == 180:
+            while i <= ai.min_distance_collision:
+                if self.is_collision(x, y + i):
+                    ai.turn_left()
+                    return
+                if self.is_collision(x, y - i):
+                    ai.turn_right()
+                    return
+                i += 1
+        elif ai.heading() == 270:
+            while i <= ai.min_distance_collision:
+                if self.is_collision(x - i, y):
+                    ai.turn_left()
+                    return
+                if self.is_collision(x + i, y):
+                    ai.turn_right()
+                    return
+                i += 1
+        ai.turn_left()
+
+    def is_near_collision(self, ai):
+        i = 1
+        x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
+        while i <= ai.min_distance_collision:
+            if ai.heading() == 0 and self.is_collision(x + i, y):
+                return True
+            elif ai.heading() == 180 and self.is_collision(x - i, y):
+                return True
+            elif ai.heading() == 90 and self.is_collision(x, y + i):
+                return True
+            elif ai.heading() == 270 and self.is_collision(x, y - i):
+                return True
+            i += 1
+        return False
+
+    def ai_logic(self, ai):
+        ai.frame += 1
+        if ai.frame > 5 and (self.is_near_boundary(ai) or self.is_near_collision(ai)):
+            self.make_turn_based_on_collision_distance(ai)
+            ai.reset_frames()
 
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
@@ -276,7 +374,7 @@ class Game(object):
 
         while self.game_on:
             # Updates screen only when loop is complete
-            turtle.update()
+            self.screen.update()
             # Set controls based on menu setting
             if self.relative_controls:
                 self.set_relative_keyboard_bindings()
@@ -284,9 +382,13 @@ class Game(object):
                 self.set_abs_keyboard_bindings()
 
             # Activate key mappings
-            turtle.listen()
+            self.screen.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
+                if player.is_ai:
+                    self.ai_logic(player)
+                # if self.testing:
+                #     player.run_test()
                 player.set_prev_coord()
                 player.forward(player.fwd_speed)
                 x, y = self.get_grid_coord(player.xcor(), player.ycor())
@@ -316,5 +418,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game()
+    gameObj = Game(testing=False)
     gameObj.start_game()

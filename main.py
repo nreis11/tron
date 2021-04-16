@@ -7,22 +7,19 @@ from assets import game
 
 
 class MainMenu(object):
-    """Main menu creates a 800 x 600 window to allow you to view the controls,
-    change the grid size, start the game, and quit the game.
-    """
-
-    game_on = False
+    """Main menu creates a 800 x 600 window to allow you to view the controls, change the grid size, start the game, and quit the game."""
 
     def __init__(self):
+        turtle.setundobuffer(1)
         self.current_screen = "main"
         self.relative_controls = False
-        self.keyboard_bindings()
+        self.set_keyboard_bindings()
+        self.screen = turtle.Screen()
+        self.width, self.height = (800, 600)
+        self.active = True
 
     def create_screen(self):
         """Create medium sized main menu."""
-        self.current_screen == "main"
-        self.width, self.height = (800, 600)
-        self.screen = turtle.Screen()
         self.screen.bgcolor("black")
         self.screen.bgpic("images/main_menu.gif")
         self.screen.setup(self.width, self.height, startx=None, starty=None)
@@ -44,7 +41,7 @@ class MainMenu(object):
             self.pen.setposition(-82, -131)
         elif self.pen.cursor_pos == 2:
             self.pen.setposition(-82, -28)
-        else:  # Position 3
+        else:
             self.pen.setposition(-82, 74)
 
     def set_cursor_controls(self):
@@ -61,7 +58,7 @@ class MainMenu(object):
             self.pen.setposition(-310, -15)
         elif self.pen.cursor_pos == 2:
             self.pen.setposition(-75, -15)
-        else:  # Position 3
+        else:
             self.pen.setposition(195, -15)
 
     def cursor_up(self):
@@ -76,7 +73,7 @@ class MainMenu(object):
         if self.pen.cursor_pos > 1:
             self.pen.cursor_pos -= 1
 
-    def keyboard_bindings(self):
+    def set_keyboard_bindings(self):
         """Sets bindings depending on which screen is displayed. Either player
         can control cursor.
         """
@@ -107,9 +104,7 @@ class MainMenu(object):
             self.press_enter_or_space_controls()
 
     def press_enter_or_space_main(self):
-        """Controls how enter or space function depending on the cursor position
-        for the main screen.
-        """
+        """Controls how enter or space function depending on the cursor position for the main screen. """
         if self.pen.cursor_pos == 3:
             self.display_grid_options()
         elif self.pen.cursor_pos == 2:
@@ -120,9 +115,7 @@ class MainMenu(object):
             else:
                 self.pen.cursor_pos = 2
         elif self.pen.cursor_pos == 1:
-            if os.name == "posix":
-                os.system("killall afplay")
-            turtle.bye()
+            self.active = False
 
     def press_enter_or_space_controls(self):
         """Controls how enter or space function depending on the cursor position
@@ -149,12 +142,8 @@ class MainMenu(object):
         self.pen.clear()
         if os.name == "posix":
             os.system("killall afplay")
-        self.game_on = True
         # Start game
         self.start_game(width, height)
-        # Game finishes and returns to menu
-        self.current_screen = "main"
-        menu.start_menu()
 
     def display_controls(self):
         """Displays control screen. User can choose between relative or absolute
@@ -184,6 +173,9 @@ class MainMenu(object):
         """Starts the game with grid size choice and control setting."""
         gameObj = game.Game(width, height, self.relative_controls)
         gameObj.start_game()
+        # Game finishes and returns to menu
+        self.current_screen = "main"
+        self.start_menu()
 
     def start_menu(self):
         """Main menu loop. Creates cursor, displays main menu, and plays bgm."""
@@ -198,10 +190,16 @@ class MainMenu(object):
             os.system("killall afplay")
             os.system("afplay sounds/main_menu.m4a&")
         # Change cursor position based on keybindings
-        while True:
-            turtle.update()
+        while self.active:
             self.set_cursor_master()
-            self.keyboard_bindings()
+            self.set_keyboard_bindings()
+            self.screen.update()
+        self.quit()
+
+    def quit(self):
+        if os.name == "posix":
+            os.system("killall afplay")
+        turtle.bye()
 
 
 if __name__ == "__main__":
