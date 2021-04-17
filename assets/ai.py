@@ -6,7 +6,8 @@ class Ai(player.Player):
         super(Ai, self).__init__(name, start_x, start_y, color)
         self.difficulty = difficulty
         self.set_speed()
-        self.frame = 1
+        self.frame = 0
+        self.max_frame = 10
         self.min_distance_collision = 40
         self.test_frame = 0
         self.test_draw_length = 10

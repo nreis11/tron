@@ -33,6 +33,22 @@ class Player(turtle.Turtle):
         """90 Degree right turn."""
         self.right(90)
 
+    def go_east(self):
+        if self.heading != 180:
+            self.setheading(0)
+
+    def go_north(self):
+        if self.heading != 270:
+            self.setheading(90)
+
+    def go_west(self):
+        if self.heading != 0:
+            self.setheading(180)
+
+    def go_south(self):
+        if self.heading != 90:
+            self.setheading(270)
+
     def accelerate(self):
         """Min. speed = 1, Max. speed = 3."""
         if self.fwd_speed < 3:

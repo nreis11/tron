@@ -203,12 +203,14 @@ class Game(object):
         is updated."""
         self.score_pen.clear()
         x_offset = 75
-        for i, player in enumerate(self.players):
+        for player in self.players:
             self.score_pen.setposition(
                 (self.width / -2) + x_offset, (self.height / 2) - 40
             )
             self.score_pen.pendown()
             lives = f"{player.name}: {player.lives * '*'}"
+            color = player.color()[0]
+            self.score_pen.color(color)
             self.score_pen.write(lives, font=("Verdana", 18, "bold"))
             self.score_pen.penup()
             x_offset += 125
@@ -308,41 +310,33 @@ class Game(object):
     def make_turn_based_on_collision_distance(self, ai):
         """Get flanking distances to collision."""
         x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
+        x_boundary = self.width - (self.out_of_bounds_length * 2)
+        y_boundary = self.height - (self.out_of_bounds_length * 2)
         i = 1
-        if ai.heading() == 0:
-            while i <= ai.min_distance_collision:
+        if ai.heading() == 0 or ai.heading == 180:
+            while (
+                i <= ai.min_distance_collision
+                and y + i in range(0, y_boundary)
+                and y - i in range(0, y_boundary)
+            ):
                 if self.is_collision(x, y + i):
-                    ai.turn_right()
+                    ai.go_south()
                     return
-                if self.is_collision(x, y - i):
-                    ai.turn_left()
+                elif self.is_collision(x, y - i):
+                    ai.go_north()
                     return
                 i += 1
-        elif ai.heading() == 90:
-            while i <= ai.min_distance_collision:
+        elif ai.heading() == 90 or ai.heading() == 270:
+            while (
+                i <= ai.min_distance_collision
+                and x + i in range(0, x_boundary)
+                and x - i in range(0, x_boundary)
+            ):
                 if self.is_collision(x - i, y):
-                    ai.turn_right()
+                    ai.go_east()
                     return
-                if self.is_collision(x + i, y):
-                    ai.turn_left()
-                    return
-                i += 1
-        elif ai.heading() == 180:
-            while i <= ai.min_distance_collision:
-                if self.is_collision(x, y + i):
-                    ai.turn_left()
-                    return
-                if self.is_collision(x, y - i):
-                    ai.turn_right()
-                    return
-                i += 1
-        elif ai.heading() == 270:
-            while i <= ai.min_distance_collision:
-                if self.is_collision(x - i, y):
-                    ai.turn_left()
-                    return
-                if self.is_collision(x + i, y):
-                    ai.turn_right()
+                elif self.is_collision(x + i, y):
+                    ai.go_west()
                     return
                 i += 1
         ai.turn_left()
@@ -364,7 +358,9 @@ class Game(object):
 
     def ai_logic(self, ai):
         ai.frame += 1
-        if ai.frame > 5 and (self.is_near_boundary(ai) or self.is_near_collision(ai)):
+        if ai.frame >= ai.max_frame and (
+            self.is_near_boundary(ai) or self.is_near_collision(ai)
+        ):
             self.make_turn_based_on_collision_distance(ai)
             ai.reset_frames()
 
