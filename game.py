@@ -5,10 +5,7 @@ import time
 import os
 import random
 
-# from assets import particle
-# from assets import player
-# from assets import ai
-
+# User created
 import particle
 import player
 import ai
@@ -25,8 +22,8 @@ class Game(object):
         width=1200,
         height=800,
         relative_controls=False,
-        humans=1,
-        bots=1,
+        humans=2,
+        bots=0,
         testing=False,
         difficulty=1,
     ):
@@ -55,7 +52,7 @@ class Game(object):
         """If run directly, creates screen based on user choice from self.screen_size().
         Otherwise, screen is automatically created with arguments from main.py script."""
         self.screen.bgcolor("black")
-        self.screen.setup(self.width, self.height, startx=None, starty=None)
+        self.screen.setup(self.width, self.height)
         self.screen.title("TURTLETRON")
         self.screen.tracer(0)
 
@@ -279,14 +276,13 @@ class Game(object):
         self.create_player()
         self.create_particles()
         self.draw_score()
-        if not self.testing:
-            for num in range(3, 0, -1):
-                turtle.ontimer(self.countdown(num), 1000)
-            self.start_bgm()
+        for num in range(3, 0, -1):
+            turtle.ontimer(self.countdown(num), 1000)
+        self.start_bgm()
 
     def end_game(self):
         self.game_on = False
-        turtle.ontimer(self.display_winner(), 2000)
+        turtle.ontimer(self.display_winner(), 3000)
         self.screen.clear()
         if os.name == "posix":
             os.system("killall afplay")
@@ -358,19 +354,29 @@ class Game(object):
 
     def ai_logic(self, ai):
         ai.frame += 1
-        if ai.frame >= ai.max_frame and (
+        if ai.frame >= ai.frame_delay and (
             self.is_near_boundary(ai) or self.is_near_collision(ai)
         ):
             self.make_turn_based_on_collision_distance(ai)
             ai.reset_frames()
+
+    def set_neighbor_coords_as_visited(self, x, y, amount=1):
+        """Sets neighboring coordinates in all directions to visited by certain amount."""
+        for num in range(1, amount + 1):
+            self.grid[y][x + num] = 1
+            self.grid[y + num][x + num] = 1
+            self.grid[y + num][x] = 1
+            self.grid[y + num][x - num] = 1
+            self.grid[y][x - num] = 1
+            self.grid[y - num][x - num] = 1
+            self.grid[y - num][x] = 1
+            self.grid[y - num][x + num] = 1
 
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
         run continuously until a player runs out of lives."""
 
         while self.game_on:
-            # Updates screen only when loop is complete
-            self.screen.update()
             # Set controls based on menu setting
             if self.relative_controls:
                 self.set_relative_keyboard_bindings()
@@ -411,8 +417,10 @@ class Game(object):
                     if self.is_game_over():
                         self.end_game()
                     self.reset_grid()
+            # Updates screen only when loop is complete
+            self.screen.update()
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False)
+    gameObj = Game(testing=False, bots=1, humans=1)
     gameObj.start_game()

@@ -7,8 +7,8 @@ class Ai(player.Player):
         self.difficulty = difficulty
         self.set_speed()
         self.frame = 0
-        self.max_frame = 10
-        self.min_distance_collision = 40
+        self.frame_delay = 30 // difficulty
+        self.min_distance_collision = 100 // difficulty
         self.test_frame = 0
         self.test_draw_length = 10
         self.is_ai = True

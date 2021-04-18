@@ -3,7 +3,7 @@
 import turtle
 import os
 import sys
-from assets import game
+import game
 
 
 class MainMenu(object):
