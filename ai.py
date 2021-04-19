@@ -3,7 +3,7 @@ import player
 
 class Ai(player.Player):
     def __init__(self, name, start_x, start_y, color, difficulty):
-        super(Ai, self).__init__(name, start_x, start_y, color)
+        player.Player.__init__(self, name, start_x, start_y, color)
         self.difficulty = difficulty
         self.set_speed()
         self.frame = 0

@@ -9,16 +9,24 @@ import game
 class MainMenu(object):
     """Main menu creates a 800 x 600 window to allow you to view the controls, change the grid size, start the game, and quit the game."""
 
+    MENU = "MENU"
+    GAME = "GAME"
+    QUIT = "QUIT"
+
     def __init__(self):
         turtle.setundobuffer(1)
-        self.current_screen = "main"
-        self.relative_controls = False
-        self.set_keyboard_bindings()
         self.screen = turtle.Screen()
         self.width, self.height = (800, 600)
-        self.active = True
+        self.set_screen()
+        self.game_width, self.game_height = (800, 600)
+        self.create_cursor()
+        self.display_main()
+        self.relative_controls = False
+        self.set_keyboard_bindings()
+        self.start_music()
+        self.state = self.MENU
 
-    def create_screen(self):
+    def set_screen(self):
         """Create medium sized main menu."""
         self.screen.bgcolor("black")
         self.screen.bgpic("images/main_menu.gif")
@@ -26,7 +34,15 @@ class MainMenu(object):
         self.screen.title("TURTLETRON")
         self.screen.tracer(0)
 
-    def set_cursor_master(self):
+    def create_cursor(self):
+        self.pen = turtle.Turtle()
+        self.pen.shapesize(stretch_wid=3, stretch_len=3, outline=None)
+        self.pen.cursor_pos = 3
+        self.pen.pencolor("#40BBE3")
+        self.pen.penup()
+        self.pen.showturtle()
+
+    def set_cursor_controller(self):
         """Runs in start menu loop. Controlled by cursor_up and cursor_down functions."""
         if self.current_screen == "main":
             self.set_cursor_main()
@@ -115,7 +131,7 @@ class MainMenu(object):
             else:
                 self.pen.cursor_pos = 2
         elif self.pen.cursor_pos == 1:
-            self.active = False
+            self.state = self.QUIT
 
     def press_enter_or_space_controls(self):
         """Controls how enter or space function depending on the cursor position
@@ -138,12 +154,10 @@ class MainMenu(object):
             width, height = (1024, 768)
         elif self.pen.cursor_pos == 3:
             width, height = (1280, 960)
+        self.game_width, self.game_height = (width, height)
         self.screen.clear()
-        self.pen.clear()
-        if os.name == "posix":
-            os.system("killall afplay")
-        # Start game
-        self.start_game(width, height)
+        self.stop_music()
+        self.state = self.GAME
 
     def display_controls(self):
         """Displays control screen. User can choose between relative or absolute
@@ -159,46 +173,49 @@ class MainMenu(object):
         """Displays the main menu."""
         self.current_screen = "main"
         self.screen.bgpic("images/main_menu.gif")
-        self.pen.showturtle()
 
     def display_grid_options(self):
         """Displays grid size options, after selecting to start."""
         self.pen.cursor_pos = 2
         self.current_screen = "grid_size"
         self.screen.bgpic("images/grid_size.gif")
-        if os.name == "posix":
-            os.system("say choose your grid size.&")
 
-    def start_game(self, width, height):
-        """Starts the game with grid size choice and control setting."""
-        gameObj = game.Game(width, height, self.relative_controls)
-        gameObj.start_game()
-        # Game finishes and returns to menu
-        self.current_screen = "main"
-        self.start_menu()
+    def reset_menu(self):
+        self.set_screen()
+        self.display_main()
+        self.create_cursor()
+        self.start_music()
+
+    def stop_music(self):
+        if os.name == "posix":
+            os.system("killall afplay")
+
+    def start_music(self):
+        if os.name == "posix":
+            self.stop_music()
+            os.system("afplay sounds/main_menu.m4a&")
 
     def start_menu(self):
         """Main menu loop. Creates cursor, displays main menu, and plays bgm."""
-        self.create_screen()
-        self.pen = turtle.Turtle()
-        self.pen.shapesize(stretch_wid=3, stretch_len=3, outline=None)
-        self.pen.cursor_pos = 3
-        self.pen.pencolor("#40BBE3")
-        self.pen.penup()
-        # Stop music when returning from game and restart main menu music
-        if os.name == "posix":
-            os.system("killall afplay")
-            os.system("afplay sounds/main_menu.m4a&")
+
         # Change cursor position based on keybindings
-        while self.active:
-            self.set_cursor_master()
+        while self.state == self.MENU:
+            self.set_cursor_controller()
             self.set_keyboard_bindings()
             self.screen.update()
-        self.quit()
+            while self.state == self.GAME:
+                gameObj = game.Game(
+                    self.game_width, self.game_height, self.relative_controls
+                )
+                gameObj.start_game()
+                self.state = self.MENU
+                self.reset_menu()
+
+        if self.state == "QUIT":
+            self.quit()
 
     def quit(self):
-        if os.name == "posix":
-            os.system("killall afplay")
+        self.stop_music()
         turtle.bye()
 
 

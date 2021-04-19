@@ -8,7 +8,7 @@ class Player(turtle.Turtle):
     READY = "ready"
 
     def __init__(self, name, start_x, start_y, color):
-        super(Player, self).__init__()
+        turtle.Turtle.__init__(self)
         self.penup()
         self.shape("square")
         self.color(color)
@@ -20,7 +20,7 @@ class Player(turtle.Turtle):
         self.setheading(random.randrange(0, 360, 90))
         self.setposition(start_x, start_y)
         self.prev_pos = (start_x, start_y)
-        self.lives = 3
+        self.lives = 1
         self.status = Player.READY
         self.is_ai = False
         self.pendown()

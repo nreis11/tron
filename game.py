@@ -32,6 +32,8 @@ class Game(object):
         self.height = height
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
+        self.x_boundary = (self.width // 2) - self.out_of_bounds_length
+        self.y_boundary = (self.height // 2) - self.out_of_bounds_length
         self.grid = self.create_grid()
         self.humans = humans
         self.bots = bots
@@ -60,8 +62,6 @@ class Game(object):
         """Border is drawn from the width and height, starting in upper
         right hand corner. Each side is 50 pixels from the edge of the screen.
         The border coordinates will be used for border detection as well."""
-        self.x_boundary = (self.width // 2) - self.out_of_bounds_length
-        self.y_boundary = (self.height // 2) - self.out_of_bounds_length
         self.border_pen.penup()
         self.border_pen.setposition(self.x_boundary, self.y_boundary)
         self.border_pen.pendown()
@@ -80,9 +80,9 @@ class Game(object):
         self.border_pen.hideturtle()
 
     def get_random_coord(self):
-        """Generates random coordinate within playable area with 50 px padding from boundary"""
-        x = random.randint(-(self.x_boundary - 50), (self.x_boundary - 50))
-        y = random.randint(-(self.y_boundary - 50), (self.y_boundary - 50))
+        """Generates random coordinate within playable area with 100 px padding from boundary"""
+        x = random.randint(-(self.x_boundary - 100), (self.x_boundary - 100))
+        y = random.randint(-(self.y_boundary - 100), (self.y_boundary - 100))
         return (x, y)
 
     def is_outside_boundary(self, player):
@@ -229,9 +229,6 @@ class Game(object):
             x, y = self.get_random_coord()
             player.clear_lightcycle()
             player.respawn(x, y)
-            if self.testing and player.is_ai:
-                player.test_draw_length = 10
-                player.test_frame = 0
 
         self.grid = self.create_grid()
 
@@ -267,7 +264,7 @@ class Game(object):
         self.score_pen.hideturtle()
         self.score_pen.color("white")
         self.game_text_pen.color("white")
-        self.game_text_pen.setposition(0, 0)
+        # self.game_text_pen.setposition(0, 0)
 
     def create_assets(self):
         self.create_screen()
@@ -341,13 +338,12 @@ class Game(object):
         i = 1
         x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
         while i <= ai.min_distance_collision:
-            if ai.heading() == 0 and self.is_collision(x + i, y):
-                return True
-            elif ai.heading() == 180 and self.is_collision(x - i, y):
-                return True
-            elif ai.heading() == 90 and self.is_collision(x, y + i):
-                return True
-            elif ai.heading() == 270 and self.is_collision(x, y - i):
+            if (
+                (ai.heading() == 0 and self.is_collision(x + i, y))
+                or (ai.heading() == 180 and self.is_collision(x - i, y))
+                or (ai.heading() == 90 and self.is_collision(x, y + i))
+                or (ai.heading() == 270 and self.is_collision(x, y - i))
+            ):
                 return True
             i += 1
         return False
