@@ -20,8 +20,8 @@ class Player(turtle.Turtle):
         self.setheading(random.randrange(0, 360, 90))
         self.setposition(start_x, start_y)
         self.prev_pos = (start_x, start_y)
-        self.lives = 1
-        self.status = Player.READY
+        self.lives = 3
+        self.status = self.READY
         self.is_ai = False
         self.pendown()
 
@@ -75,12 +75,12 @@ class Player(turtle.Turtle):
     def lose_life(self):
         """Takes away one life from player"""
         self.lives -= 1
-        self.status = Player.CRASHED
+        self.status = self.CRASHED
 
     def respawn(self, x, y):
         """Respawns light cycle to random coord passed as args, resets speed to 1, and
         resets the position list."""
-        self.status = Player.READY
+        self.status = self.READY
         self.setposition(x, y)
         self.setheading(random.randrange(0, 360, 90))
         self.prev_pos = (x, y)

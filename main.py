@@ -196,7 +196,7 @@ class MainMenu(object):
             os.system("afplay sounds/main_menu.m4a&")
 
     def start_menu(self):
-        """Main menu loop. Creates cursor, displays main menu, and plays bgm."""
+        """Main menu loop."""
 
         # Change cursor position based on keybindings
         while self.state == self.MENU:

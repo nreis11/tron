@@ -264,7 +264,6 @@ class Game(object):
         self.score_pen.hideturtle()
         self.score_pen.color("white")
         self.game_text_pen.color("white")
-        # self.game_text_pen.setposition(0, 0)
 
     def create_assets(self):
         self.create_screen()
@@ -306,29 +305,29 @@ class Game(object):
         x_boundary = self.width - (self.out_of_bounds_length * 2)
         y_boundary = self.height - (self.out_of_bounds_length * 2)
         i = 1
-        if ai.heading() == 0 or ai.heading == 180:
+        if ai.heading() == 0 or ai.heading() == 180:
             while (
-                i <= ai.min_distance_collision
-                and y + i in range(0, y_boundary)
-                and y - i in range(0, y_boundary)
+                # i <= ai.min_distance_collision
+                y + i < y_boundary
+                and y - i > 0
             ):
                 if self.is_collision(x, y + i):
                     ai.go_south()
                     return
-                elif self.is_collision(x, y - i):
+                if self.is_collision(x, y - i):
                     ai.go_north()
                     return
                 i += 1
         elif ai.heading() == 90 or ai.heading() == 270:
             while (
-                i <= ai.min_distance_collision
-                and x + i in range(0, x_boundary)
-                and x - i in range(0, x_boundary)
+                # i <= ai.min_distance_collision
+                x + i < x_boundary
+                and x - i > 0
             ):
                 if self.is_collision(x - i, y):
                     ai.go_east()
                     return
-                elif self.is_collision(x + i, y):
+                if self.is_collision(x + i, y):
                     ai.go_west()
                     return
                 i += 1
@@ -418,5 +417,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, bots=1, humans=1)
+    gameObj = Game(testing=False, bots=2, humans=0)
     gameObj.start_game()
