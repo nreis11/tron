@@ -20,10 +20,8 @@ class MainMenu(object):
         self.window_width, self.window_height = (800, 600)
         self.set_screen()
         self.screen_stack = ["main"]
-        self.create_cursor()
-        self.create_text_pen()
+        self.create_pens()
         self.display_main()
-        self.set_keyboard_bindings()
         self.cursor_positions = 3
         self.options = {
             "grid_size": {
@@ -53,6 +51,10 @@ class MainMenu(object):
         self.screen.setup(self.window_width, self.window_height)
         self.screen.title("TURTLETRON")
         self.screen.tracer(0)
+
+    def create_pens(self):
+        self.create_cursor()
+        self.create_text_pen()
 
     def create_cursor(self):
         self.pen = turtle.Turtle()
@@ -145,6 +147,10 @@ class MainMenu(object):
             turtle.onkeypress(self.cursor_up, "w")
             turtle.onkeypress(self.cursor_down, "Down")
             turtle.onkeypress(self.cursor_down, "s")
+            turtle.onkeypress(None, "a")
+            turtle.onkeypress(None, "d")
+            turtle.onkeypress(None, "Left")
+            turtle.onkeypress(None, "Right")
         elif self.get_curr_screen() == "controls":
             turtle.onkeypress(self.cursor_up, "Right")
             turtle.onkeypress(self.cursor_up, "d")
@@ -210,7 +216,6 @@ class MainMenu(object):
             self.options["relative_controls"]["value"] = True
         else:
             self.options["relative_controls"]["value"] = False
-        self.pen.cursor_pos = 1  # Return to last main menu position
         self.pop_from_screen_stack()
 
     def press_enter_or_space_options(self):

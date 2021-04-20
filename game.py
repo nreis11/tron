@@ -175,14 +175,15 @@ class Game(object):
         """Maps absolute controls to player movement."""
 
         # Set P1 keyboard bindings
-        if self.players[0].heading() == 0:  # East
-            self.abs_key_mapper(self.players[0], "w", "s", "d", "a")
-        elif self.players[0].heading() == 90:  # North
-            self.abs_key_mapper(self.players[0], "a", "d", "w", "s")
-        elif self.players[0].heading() == 180:  # West
-            self.abs_key_mapper(self.players[0], "s", "w", "a", "d")
-        elif self.players[0].heading() == 270:  # South
-            self.abs_key_mapper(self.players[0], "d", "a", "s", "w")
+        if self.humans >= 1:
+            if self.players[0].heading() == 0:  # East
+                self.abs_key_mapper(self.players[0], "w", "s", "d", "a")
+            elif self.players[0].heading() == 90:  # North
+                self.abs_key_mapper(self.players[0], "a", "d", "w", "s")
+            elif self.players[0].heading() == 180:  # West
+                self.abs_key_mapper(self.players[0], "s", "w", "a", "d")
+            elif self.players[0].heading() == 270:  # South
+                self.abs_key_mapper(self.players[0], "d", "a", "s", "w")
         # Set P2 keyboard bindings
         if self.humans >= 2:
             if self.players[1].heading() == 0:  # East
