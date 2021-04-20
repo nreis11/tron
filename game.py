@@ -27,8 +27,6 @@ class Game(object):
         difficulty=1,
     ):
         turtle.setundobuffer(1)
-        # self.width = 1200
-        # self.height = 800
         self.determine_window_size(grid_size)
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
@@ -131,7 +129,7 @@ class Game(object):
     def create_player(self):
         """Two players are always created. P1 is blue.
         P2 is Yellow, P3 is Red, P4 is Green"""
-        colors = ["#33cc33", "#ff0000", "#E3E329", "#40BBE3"]
+        colors = ["#CF1FDE", "#33cc33", "#ff0000", "#E3E329", "#40BBE3"]
 
         for i in range(self.humans):
             x, y = self.get_random_coord()
@@ -236,8 +234,9 @@ class Game(object):
             if player.has_lives():
                 x, y = self.get_random_coord()
                 player.respawn(x, y)
+            else:
+                player.status = player.DIED
 
-        self.players = [player for player in self.players if player.has_lives()]
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -382,6 +381,9 @@ class Game(object):
             self.screen.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
+                if player.status == player.DIED:
+                    continue
+
                 if player.is_ai:
                     self.ai_logic(player)
                 player.set_prev_coord()

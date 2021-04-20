@@ -18,6 +18,7 @@ class MainMenu(object):
         self.screen = turtle.Screen()
         self.window_width, self.window_height = (800, 600)
         self.set_screen()
+        self.screen_stack = ["main"]
         self.create_cursor()
         self.create_text_pen()
         self.display_main()
@@ -68,11 +69,11 @@ class MainMenu(object):
 
     def set_cursor_controller(self):
         """Runs in start menu loop. Controlled by cursor_up and cursor_down functions."""
-        if self.current_screen == "main":
+        if self.get_curr_screen() == "main":
             self.set_cursor_main()
-        elif self.current_screen == "options":
+        elif self.get_curr_screen() == "options":
             self.set_cursor_options()
-        elif self.current_screen == "controls":
+        elif self.get_curr_screen() == "controls":
             self.set_cursor_controls()
 
     def set_cursor_main(self):
@@ -118,55 +119,74 @@ class MainMenu(object):
             self.pen.cursor_pos -= 1
 
     def increment_value(self):
-        key = self.option_pos_map[self.pen.cursor_pos]
-        max_value = self.options[key]["max"]
-        if self.options[key]["value"] < max_value:
-            self.options[key]["value"] += 1
-            self.draw_option_values()
+        if self.pen.cursor_pos in self.option_pos_map:
+            key = self.option_pos_map[self.pen.cursor_pos]
+            max_value = self.options[key]["max"]
+            if self.options[key]["value"] < max_value:
+                self.options[key]["value"] += 1
+                self.draw_option_values()
 
     def decrement_value(self):
-        key = self.option_pos_map[self.pen.cursor_pos]
-        min_value = self.options[key]["min"]
-        if self.options[key]["value"] > min_value:
-            self.options[key]["value"] -= 1
-            self.draw_option_values()
+        if self.pen.cursor_pos in self.option_pos_map:
+            key = self.option_pos_map[self.pen.cursor_pos]
+            min_value = self.options[key]["min"]
+            if self.options[key]["value"] > min_value:
+                self.options[key]["value"] -= 1
+                self.draw_option_values()
 
     def set_keyboard_bindings(self):
         """Sets bindings depending on which screen is displayed. Either player
         can control cursor.
         """
         turtle.listen()
-        if self.current_screen == "main":
+        if self.get_curr_screen() == "main":
             turtle.onkeypress(self.cursor_up, "Up")
             turtle.onkeypress(self.cursor_up, "w")
             turtle.onkeypress(self.cursor_down, "Down")
             turtle.onkeypress(self.cursor_down, "s")
-        elif self.current_screen == "controls":
+        elif self.get_curr_screen() == "controls":
             turtle.onkeypress(self.cursor_up, "Right")
             turtle.onkeypress(self.cursor_up, "d")
             turtle.onkeypress(self.cursor_down, "Left")
             turtle.onkeypress(self.cursor_down, "a")
-        elif self.current_screen == "options":
+        elif self.get_curr_screen() == "options":
             turtle.onkeypress(self.cursor_up, "Up")
             turtle.onkeypress(self.cursor_up, "w")
             turtle.onkeypress(self.cursor_down, "Down")
+            turtle.onkeypress(self.cursor_down, "s")
             turtle.onkeypress(self.decrement_value, "a")
             turtle.onkeypress(self.increment_value, "d")
             turtle.onkeypress(self.decrement_value, "Left")
             turtle.onkeypress(self.increment_value, "Right")
 
         # Apply special function to return or space
-        turtle.onkeypress(self.press_enter_or_space_master, "Return")
-        turtle.onkeypress(self.press_enter_or_space_master, "space")
-        turtle.onkeypress(self.display_main, "Escape")
+        turtle.onkeypress(self.press_enter_or_space_controller, "Return")
+        turtle.onkeypress(self.press_enter_or_space_controller, "space")
+        turtle.onkeypress(self.pop_from_screen_stack, "Escape")
 
-    def press_enter_or_space_master(self):
+    def pop_from_screen_stack(self):
+        if len(self.screen_stack) > 1:
+            self.screen_stack.pop()
+            self.display_controller()
+
+    def get_curr_screen(self):
+        return self.screen_stack[-1]
+
+    def display_controller(self):
+        if self.get_curr_screen() == "main":
+            self.display_main()
+        elif self.get_curr_screen() == "options":
+            self.display_options()
+        elif self.get_curr_screen() == "controls":
+            self.display_controls()
+
+    def press_enter_or_space_controller(self):
         """Depending on the current screen, passes the action to its corresponding function."""
-        if self.current_screen == "main":
+        if self.get_curr_screen() == "main":
             self.press_enter_or_space_main()
-        elif self.current_screen == "options":
+        elif self.get_curr_screen() == "options":
             self.press_enter_or_space_options()
-        elif self.current_screen == "controls":
+        elif self.get_curr_screen() == "controls":
             self.press_enter_or_space_controls()
 
     def press_enter_or_space_main(self):
@@ -176,8 +196,8 @@ class MainMenu(object):
             self.stop_music()
             self.state = self.GAME
         elif self.pen.cursor_pos == 2:
+            self.screen_stack.append("options")
             self.display_options()
-            # Needed to show saved control setting
         elif self.pen.cursor_pos == 1:
             self.state = self.QUIT
 
@@ -185,13 +205,12 @@ class MainMenu(object):
         """Controls how enter or space function depending on the cursor position
         for the controls screen.
         """
-        relative_controls = self.options["relative_controls"]["value"]
         if self.pen.cursor_pos == 1:
-            relative_controls = True
+            self.options["relative_controls"]["value"] = True
         else:
-            relative_controls = False
-        self.pen.cursor_pos = 5  # Return to last main menu position
-        self.display_options()
+            self.options["relative_controls"]["value"] = False
+        self.pen.cursor_pos = 1  # Return to last main menu position
+        self.pop_from_screen_stack()
 
     def press_enter_or_space_options(self):
         """Controls how enter or space function depending on the cursor position
@@ -199,10 +218,8 @@ class MainMenu(object):
         """
         if self.pen.cursor_pos == 1:
             relative_controls = self.options["relative_controls"]["value"]
-            if relative_controls:
-                self.pen.cursor_pos = 1
-            else:
-                self.pen.cursor_pos = 2
+            self.pen.cursor_pos = 1 if relative_controls else 2
+            self.screen_stack.append("controls")
             self.display_controls()
             self.text_pen.clear()
 
@@ -210,35 +227,32 @@ class MainMenu(object):
         """Displays control screen. User can choose between relative or absolute
         control scheme.
         """
-        self.current_screen = "controls"
+        img_name = "controls_absolute"
         if self.pen.cursor_pos == 1:
-            self.screen.bgpic("images/controls_relative.gif")
-        else:
-            self.screen.bgpic("images/controls_absolute.gif")
+            img_name = "controls_relative"
+        self.screen.bgpic(f"images/{img_name}.gif")
 
     def display_main(self):
         """Displays the main menu."""
         self.text_pen.clear()
-        self.current_screen = "main"
         self.screen.bgpic("images/main_menu.gif")
 
     def display_options(self):
-        """Displays grid size options, after selecting to start."""
+        """Display game options. Option values are controlled by self.text_pen."""
         self.pen.cursor_pos = 5
-        self.current_screen = "options"
         self.screen.bgpic("images/options.gif")
         self.draw_option_values()
 
     def draw_option_values(self):
         self.text_pen.clear()
         y_offset = 110
-        values = [
+        options = [
             self.options["humans"],
             self.options["bots"],
             self.options["difficulty"],
             self.options["grid_size"],
         ]
-        for i, option in enumerate(values):
+        for option in options:
             self.text_pen.setposition(200, y_offset)
             self.text_pen.pendown()
             value = option["value"]
@@ -273,6 +287,7 @@ class MainMenu(object):
             self.set_keyboard_bindings()
             self.screen.update()
             while self.state == self.GAME:
+                # Trim options dict to only contain name and value
                 options = {key: value["value"] for key, value in self.options.items()}
                 gameObj = game.Game(**options)
                 gameObj.start_game()

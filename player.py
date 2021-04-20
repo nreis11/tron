@@ -6,6 +6,7 @@ class Player(turtle.Turtle):
 
     CRASHED = "crashed"
     READY = "ready"
+    DIED = "died"
 
     def __init__(self, name, start_x, start_y, color):
         turtle.Turtle.__init__(self)
