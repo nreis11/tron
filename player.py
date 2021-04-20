@@ -69,13 +69,17 @@ class Player(turtle.Turtle):
 
     def clear_lightcycle(self):
         """Removes light cycle from screen"""
+        self.hideturtle()
         self.penup()
         self.clear()
 
     def lose_life(self):
-        """Takes away one life from player"""
+        """Take away one life from player"""
         self.lives -= 1
         self.status = self.CRASHED
+
+    def has_lives(self):
+        return self.lives > 0
 
     def respawn(self, x, y):
         """Respawns light cycle to random coord passed as args, resets speed to 1, and
@@ -85,4 +89,5 @@ class Player(turtle.Turtle):
         self.setheading(random.randrange(0, 360, 90))
         self.prev_pos = (x, y)
         self.fwd_speed = 1
+        self.showturtle()
         self.pendown()

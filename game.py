@@ -227,17 +227,17 @@ class Game(object):
     def display_winner(self):
         """Once game loop finishes, this runs to display the winner."""
         self.game_text_pen.pendown()
-        for player in self.players:
-            if player.lives > 0:
-                winner = player.name
-        self.game_text_pen.write(winner + " wins!", align="center", font=Game.GAME_FONT)
+        winner = [player.name for player in self.players if player.has_lives()][0]
+        self.game_text_pen.write(f"{winner} wins!", align="center", font=Game.GAME_FONT)
 
     def reset_grid(self):
         for player in self.players:
-            x, y = self.get_random_coord()
             player.clear_lightcycle()
-            player.respawn(x, y)
+            if player.has_lives():
+                x, y = self.get_random_coord()
+                player.respawn(x, y)
 
+        self.players = [player for player in self.players if player.has_lives()]
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -286,7 +286,7 @@ class Game(object):
 
     def end_game(self):
         self.game_on = False
-        turtle.ontimer(self.display_winner(), 3000)
+        turtle.ontimer(self.display_winner(), 2000)
         self.screen.clear()
         if os.name == "posix":
             os.system("killall afplay")
@@ -384,8 +384,6 @@ class Game(object):
             for player in self.players:
                 if player.is_ai:
                     self.ai_logic(player)
-                # if self.testing:
-                #     player.run_test()
                 player.set_prev_coord()
                 player.forward(player.fwd_speed)
                 x, y = self.get_grid_coord(player.xcor(), player.ycor())

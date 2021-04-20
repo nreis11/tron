@@ -203,8 +203,8 @@ class MainMenu(object):
                 self.pen.cursor_pos = 1
             else:
                 self.pen.cursor_pos = 2
-
             self.display_controls()
+            self.text_pen.clear()
 
     def display_controls(self):
         """Displays control screen. User can choose between relative or absolute
