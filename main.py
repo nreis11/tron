@@ -15,6 +15,7 @@ class MainMenu(object):
 
     def __init__(self):
         turtle.setundobuffer(1)
+        turtle.tracer(0)
         self.screen = turtle.Screen()
         self.window_width, self.window_height = (800, 600)
         self.set_screen()
@@ -42,7 +43,7 @@ class MainMenu(object):
             },
         }
         self.option_pos_map = {5: "humans", 4: "bots", 3: "difficulty", 2: "grid_size"}
-        # self.start_music()
+        self.start_music()
         self.state = self.MENU
 
     def set_screen(self):

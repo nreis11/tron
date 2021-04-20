@@ -27,7 +27,11 @@ class Game(object):
         difficulty=1,
     ):
         turtle.setundobuffer(1)
-        self.determine_window_size(grid_size)
+        self.grid_size = grid_size
+        self.width = 800
+        self.height = 600
+        self.determine_window_size()
+        self.create_screen()
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
         self.x_boundary = (self.width // 2) - self.out_of_bounds_length
@@ -40,15 +44,12 @@ class Game(object):
         self.particles = []
         self.game_on = True
         self.testing = testing
-        self.screen = turtle.Screen()
         self.create_assets()
 
-    def determine_window_size(self, grid_size):
-        if grid_size == 1:
-            self.width, self.height = (800, 600)
-        elif grid_size == 2:
+    def determine_window_size(self):
+        if self.grid_size == 2:
             self.width, self.height = (1024, 768)
-        elif grid_size == 3:
+        elif self.grid_size == 3:
             self.width, self.height = (1280, 960)
 
     def create_grid(self):
@@ -59,8 +60,9 @@ class Game(object):
     def create_screen(self):
         """If run directly, creates screen based on user choice from self.screen_size().
         Otherwise, screen is automatically created with arguments from main.py script."""
+        self.screen = turtle.Screen()
         self.screen.bgcolor("black")
-        self.screen.setup(self.width, self.height)
+        self.screen.setup(1.0, 1.0)
         self.screen.title("TURTLETRON")
         self.screen.tracer(0)
 
@@ -273,7 +275,6 @@ class Game(object):
         self.game_text_pen.color("white")
 
     def create_assets(self):
-        self.create_screen()
         self.create_pens()
         self.create_border()
         self.create_player()
