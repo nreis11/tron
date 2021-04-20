@@ -19,8 +19,7 @@ class Game(object):
 
     def __init__(
         self,
-        width=1200,
-        height=800,
+        grid_size=3,
         relative_controls=False,
         humans=2,
         bots=0,
@@ -28,8 +27,9 @@ class Game(object):
         difficulty=1,
     ):
         turtle.setundobuffer(1)
-        self.width = width
-        self.height = height
+        # self.width = 1200
+        # self.height = 800
+        self.determine_window_size(grid_size)
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
         self.x_boundary = (self.width // 2) - self.out_of_bounds_length
@@ -44,6 +44,14 @@ class Game(object):
         self.testing = testing
         self.screen = turtle.Screen()
         self.create_assets()
+
+    def determine_window_size(self, grid_size):
+        if grid_size == 1:
+            self.width, self.height = (800, 600)
+        elif grid_size == 2:
+            self.width, self.height = (1024, 768)
+        elif grid_size == 3:
+            self.width, self.height = (1280, 960)
 
     def create_grid(self):
         width = self.width - (self.out_of_bounds_length * 2)
@@ -306,11 +314,7 @@ class Game(object):
         y_boundary = self.height - (self.out_of_bounds_length * 2)
         i = 1
         if ai.heading() == 0 or ai.heading() == 180:
-            while (
-                # i <= ai.min_distance_collision
-                y + i < y_boundary
-                and y - i > 0
-            ):
+            while y + i < y_boundary and y - i > 0:
                 if self.is_collision(x, y + i):
                     ai.go_south()
                     return
@@ -319,11 +323,7 @@ class Game(object):
                     return
                 i += 1
         elif ai.heading() == 90 or ai.heading() == 270:
-            while (
-                # i <= ai.min_distance_collision
-                x + i < x_boundary
-                and x - i > 0
-            ):
+            while x + i < x_boundary and x - i > 0:
                 if self.is_collision(x - i, y):
                     ai.go_east()
                     return
