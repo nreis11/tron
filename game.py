@@ -26,7 +26,7 @@ class Game(object):
         testing=False,
         difficulty=1,
     ):
-        turtle.setundobuffer(1)
+        turtle.setundobuffer(None)
         self.grid_size = grid_size
         self.width = 800
         self.height = 600
@@ -78,11 +78,13 @@ class Game(object):
         for side in range(4):
             # Vertical
             if side % 2:
-                self.border_pen.forward(self.height - self.out_of_bounds_length * 2)
+                self.border_pen.forward(self.y_boundary * 2)
+                self.border_pen.forward(2)  # Extra added to match visually
                 self.border_pen.left(90)
             # Horizontal
             else:
-                self.border_pen.forward(self.width - self.out_of_bounds_length * 2)
+                self.border_pen.forward(self.x_boundary * 2)
+                self.border_pen.forward(2)  # Extra added to match visually
                 self.border_pen.left(90)
         self.border_pen.penup()
         self.border_pen.hideturtle()
@@ -92,13 +94,6 @@ class Game(object):
         x = random.randint(-(self.x_boundary - 100), (self.x_boundary - 100))
         y = random.randint(-(self.y_boundary - 100), (self.y_boundary - 100))
         return (x, y)
-
-    def is_outside_boundary(self, player):
-        """Checks if light cycle is out of bounds using border coord."""
-        return (
-            abs(player.xcor()) > abs(self.x_boundary) - self.border_pen.pensize()
-            or abs(player.ycor()) > abs(self.y_boundary) - self.border_pen.pensize()
-        )
 
     def position_range_adder(self, player):
         """If speed is > 1, the positions aren't recorded between the speed gap. Therefore,
@@ -275,7 +270,7 @@ class Game(object):
         self.game_text_pen = turtle.Turtle()
 
         self.border_pen.speed(0)
-        self.border_pen.pensize(3)
+        self.border_pen.pensize(2)
         self.border_pen.color("blue")
         self.game_text_pen.hideturtle()
         self.score_pen.penup()
@@ -300,45 +295,26 @@ class Game(object):
         if os.name == "posix":
             os.system("killall afplay")
 
-    def is_near_boundary(self, ai):
-        if ai.heading() == 0 or ai.heading() == 180:
-            return (
-                abs(ai.xcor())
-                > abs(self.x_boundary)
-                - ai.min_distance_collision
-                - self.border_pen.pensize()
-            )
-        elif ai.heading() == 90 or ai.heading() == 270:
-            return (
-                abs(ai.ycor())
-                > abs(self.y_boundary)
-                - ai.min_distance_collision
-                - self.border_pen.pensize()
-            )
-
     def make_turn_based_on_collision_distance(self, ai):
         """Get flanking distances to collision."""
         x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
         i = 1
-        if ai.heading() == 0 or ai.heading() == 180:
-            while y + i < self.y_boundary and y - i > 0:
+        while True:
+            if ai.heading() == 0 or ai.heading() == 180:
                 if self.is_collision(x, y + i):
                     ai.go_south()
                     return
                 if self.is_collision(x, y - i):
                     ai.go_north()
                     return
-                i += 1
-        elif ai.heading() == 90 or ai.heading() == 270:
-            while x + i < self.x_boundary and x - i > 0:
+            elif ai.heading() == 90 or ai.heading() == 270:
                 if self.is_collision(x - i, y):
                     ai.go_east()
                     return
                 if self.is_collision(x + i, y):
                     ai.go_west()
                     return
-                i += 1
-        ai.turn_left()
+            i += 1
 
     def is_near_collision(self, ai):
         i = 1
@@ -356,9 +332,7 @@ class Game(object):
 
     def ai_logic(self, ai):
         ai.frame += 1
-        if ai.frame >= ai.frame_delay and (
-            self.is_near_boundary(ai) or self.is_near_collision(ai)
-        ):
+        if ai.frame >= ai.frame_delay and self.is_near_collision(ai):
             self.make_turn_based_on_collision_distance(ai)
             ai.reset_frames()
 
@@ -398,21 +372,14 @@ class Game(object):
                     self.ai_logic(player)
                 player.set_prev_coord()
                 player.forward(player.fwd_speed)
-                x, y = self.get_grid_coord(player.xcor(), player.ycor())
-
-                # Detect collision with boundary, self, or enemy
-                if self.is_collision(x, y):
-                    player.lose_life()
-                else:
-                    # Add missing positions to bridge position gaps
-                    positions = self.position_range_adder(player)
-                    for x, y in positions:
-                        if self.is_collision(x, y):
-                            player.lose_life()
-                            break
-                        else:
-                            self.grid[y][x] = 1
-                            self.set_adjacent_coords_as_visited(player, x, y, 3)
+                positions = self.position_range_adder(player)
+                for x, y in positions:
+                    if self.is_collision(x, y):
+                        player.lose_life()
+                        break
+                    else:
+                        self.grid[y][x] = 1
+                        self.set_adjacent_coords_as_visited(player, x, y, 3)
 
             # Particle movement
             for particle in self.particles:
@@ -433,5 +400,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=2, bots=4, humans=0, grid_size=3)
+    gameObj = Game(testing=False, difficulty=3, bots=3, humans=0, grid_size=2)
     gameObj.start_game()

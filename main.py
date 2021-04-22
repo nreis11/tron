@@ -14,7 +14,7 @@ class MainMenu(object):
     QUIT = "QUIT"
 
     def __init__(self):
-        turtle.setundobuffer(1)
+        turtle.setundobuffer(None)
         turtle.tracer(0)
         self.screen = turtle.Screen()
         self.window_width, self.window_height = (800, 600)
