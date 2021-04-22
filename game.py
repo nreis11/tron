@@ -21,8 +21,8 @@ class Game(object):
         self,
         grid_size=3,
         relative_controls=False,
-        humans=2,
-        bots=0,
+        humans=0,
+        bots=2,
         testing=False,
         difficulty=1,
     ):
@@ -30,7 +30,7 @@ class Game(object):
         self.grid_size = grid_size
         self.width = 800
         self.height = 600
-        self.determine_window_size()
+        self.determine_grid_size()
         self.create_screen()
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
@@ -46,15 +46,15 @@ class Game(object):
         self.testing = testing
         self.create_assets()
 
-    def determine_window_size(self):
+    def determine_grid_size(self):
         if self.grid_size == 2:
             self.width, self.height = (1024, 768)
         elif self.grid_size == 3:
             self.width, self.height = (1280, 960)
 
     def create_grid(self):
-        width = self.width - (self.out_of_bounds_length * 2)
-        height = self.height - (self.out_of_bounds_length * 2)
+        width = self.x_boundary * 2
+        height = self.y_boundary * 2
         return [[0 for x in range(width)] for y in range(height)]
 
     def create_screen(self):
@@ -78,11 +78,11 @@ class Game(object):
         for side in range(4):
             # Vertical
             if side % 2:
-                self.border_pen.forward(self.height - 100)
+                self.border_pen.forward(self.height - self.out_of_bounds_length * 2)
                 self.border_pen.left(90)
             # Horizontal
             else:
-                self.border_pen.forward(self.width - 100)
+                self.border_pen.forward(self.width - self.out_of_bounds_length * 2)
                 self.border_pen.left(90)
         self.border_pen.penup()
         self.border_pen.hideturtle()
@@ -103,30 +103,32 @@ class Game(object):
     def position_range_adder(self, player):
         """If speed is > 1, the positions aren't recorded between the speed gap. Therefore,
         this function is needed to fill in the gaps and append the missing positions"""
-        prev_xcor, prev_ycor = player.prev_pos
-        curr_xcor = int(player.xcor())
-        curr_ycor = int(player.ycor())
         positions = []
-        if prev_xcor != curr_xcor:
-            start = min(prev_xcor, curr_xcor)
-            end = max(prev_xcor, curr_xcor)
-            for x_position in range(start + 1, end):
-                coord = (x_position, prev_ycor)
-                positions.append(coord)
-        elif prev_ycor != curr_ycor:
-            start = min(prev_ycor, curr_ycor)
-            end = max(prev_ycor, curr_ycor)
-            for y_position in range(start + 1, end):
-                coord = (prev_xcor, y_position)
-                positions.append(coord)
+
+        def get_missing_positions(prev, curr, step):
+            for pos in range(prev, curr, step):
+                positions.append(pos)
+            return positions
+
+        prev_xcor, prev_ycor = player.prev_pos
+        curr_xcor, curr_ycor = int(player.xcor()), int(player.ycor())
+        if prev_xcor == curr_xcor and prev_ycor == curr_ycor:
+            return positions
+
+        if player.heading() == 0:
+            positions = get_missing_positions(prev_xcor, curr_xcor, 1)
+        elif player.heading() == 90:
+            positions = get_missing_positions(prev_ycor, curr_ycor, 1)
+        elif player.heading() == 180:
+            positions = get_missing_positions(prev_xcor, curr_xcor, -1)
+        elif player.heading() == 270:
+            positions = get_missing_positions(prev_ycor, curr_ycor, -1)
         # Translate to grid coordinates
-        positions = [self.get_grid_coord(x, y) for x, y in positions]
-        for x, y in positions:
-            if self.is_collision(x, y):
-                player.lose_life()
-                return
-            else:
-                self.grid[y][x] = 1
+        if player.heading() == 0 or player.heading() == 180:
+            positions = [self.get_grid_coord(x, prev_ycor) for x in positions]
+        elif player.heading() == 90 or player.heading() == 270:
+            positions = [self.get_grid_coord(prev_xcor, y) for y in positions]
+        return positions
 
     def create_player(self):
         """Two players are always created. P1 is blue.
@@ -155,7 +157,13 @@ class Game(object):
             particle.explode(player.xcor(), player.ycor())
 
     def is_collision(self, x, y):
-        return self.grid[y][x]
+        if x < 0 or y < 0:
+            return True
+        try:
+            return self.grid[y][x]
+        except IndexError:
+            # Out of Bounds
+            return True
 
     def set_relative_keyboard_bindings(self):
         """Maps relative controls to player movement."""
@@ -311,11 +319,9 @@ class Game(object):
     def make_turn_based_on_collision_distance(self, ai):
         """Get flanking distances to collision."""
         x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
-        x_boundary = self.width - (self.out_of_bounds_length * 2)
-        y_boundary = self.height - (self.out_of_bounds_length * 2)
         i = 1
         if ai.heading() == 0 or ai.heading() == 180:
-            while y + i < y_boundary and y - i > 0:
+            while y + i < self.y_boundary and y - i > 0:
                 if self.is_collision(x, y + i):
                     ai.go_south()
                     return
@@ -324,7 +330,7 @@ class Game(object):
                     return
                 i += 1
         elif ai.heading() == 90 or ai.heading() == 270:
-            while x + i < x_boundary and x - i > 0:
+            while x + i < self.x_boundary and x - i > 0:
                 if self.is_collision(x - i, y):
                     ai.go_east()
                     return
@@ -356,17 +362,19 @@ class Game(object):
             self.make_turn_based_on_collision_distance(ai)
             ai.reset_frames()
 
-    def set_neighbor_coords_as_visited(self, x, y, amount=1):
-        """Sets neighboring coordinates in all directions to visited by certain amount."""
-        for num in range(1, amount + 1):
-            self.grid[y][x + num] = 1
-            self.grid[y + num][x + num] = 1
-            self.grid[y + num][x] = 1
-            self.grid[y + num][x - num] = 1
-            self.grid[y][x - num] = 1
-            self.grid[y - num][x - num] = 1
-            self.grid[y - num][x] = 1
-            self.grid[y - num][x + num] = 1
+    def set_adjacent_coords_as_visited(self, player, x, y, amount=1):
+        """Sets adjecent coordinates in all directions to visited by certain amount."""
+        try:
+            for num in range(1, amount + 1):
+                if player.heading() == 0 or player.heading() == 180:
+                    self.grid[y - num][x] = 1
+                    self.grid[y + num][x] = 1
+                elif player.heading() == 90 or player.heading() == 270:
+                    self.grid[y][x + num] = 1
+                    self.grid[y][x - num] = 1
+        except IndexError:
+            # Ignore out of bounds activations
+            pass
 
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
@@ -393,12 +401,18 @@ class Game(object):
                 x, y = self.get_grid_coord(player.xcor(), player.ycor())
 
                 # Detect collision with boundary, self, or enemy
-                if self.is_outside_boundary(player) or self.is_collision(x, y):
+                if self.is_collision(x, y):
                     player.lose_life()
                 else:
                     # Add missing positions to bridge position gaps
-                    self.position_range_adder(player)
-                    self.grid[y][x] = 1
+                    positions = self.position_range_adder(player)
+                    for x, y in positions:
+                        if self.is_collision(x, y):
+                            player.lose_life()
+                            break
+                        else:
+                            self.grid[y][x] = 1
+                            self.set_adjacent_coords_as_visited(player, x, y, 3)
 
             # Particle movement
             for particle in self.particles:
@@ -419,5 +433,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, bots=2, humans=0)
+    gameObj = Game(testing=False, difficulty=2, bots=4, humans=0, grid_size=3)
     gameObj.start_game()

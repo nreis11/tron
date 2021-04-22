@@ -6,7 +6,7 @@ class Particle(turtle.Turtle):
     """This class is used to create particle effects when there is a crash."""
 
     def __init__(self):
-        turtle.Turtle.__init__(self, shape="square")
+        super().__init__(shape="square")
         self.shapesize(stretch_wid=0.1, stretch_len=0.3, outline=None)
         self.speed(0)  # Refers to animation speed
         self.penup()

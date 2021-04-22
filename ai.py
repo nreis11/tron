@@ -3,7 +3,7 @@ import player
 
 class Ai(player.Player):
     def __init__(self, name, start_x, start_y, color, difficulty):
-        player.Player.__init__(self, name, start_x, start_y, color)
+        super(Ai, self).__init__(name, start_x, start_y, color)
         self.difficulty = difficulty
         self.set_speed()
         self.frame = 0
@@ -15,9 +15,8 @@ class Ai(player.Player):
         self.frame = 0
 
     def set_speed(self):
-        """Set speed based on difficulty (1-3). Defaults to easy."""
+        """Set speed based on difficulty (1-3)."""
         self.fwd_speed = self.difficulty
-        self.fwd_speed = 1
 
     def respawn(self, x, y):
         super(Ai, self).respawn(x, y)

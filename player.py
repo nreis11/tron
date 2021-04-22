@@ -9,7 +9,7 @@ class Player(turtle.Turtle):
     DIED = "died"
 
     def __init__(self, name, start_x, start_y, color):
-        turtle.Turtle.__init__(self)
+        super(Player, self).__init__()
         self.penup()
         self.shape("square")
         self.color(color)
@@ -17,7 +17,7 @@ class Player(turtle.Turtle):
         self.name = name
         self.speed(0)
         self.fwd_speed = 1
-        self.pensize(2)
+        self.pensize(3)
         self.setheading(random.randrange(0, 360, 90))
         self.setposition(start_x, start_y)
         self.prev_pos = (start_x, start_y)
