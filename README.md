@@ -16,13 +16,10 @@ alt="IMAGE gameplay" width="800" height="600" border="0" /></a>
 
 ## Synopsis
 
-This game is a homage to the 1982 cult classic, Tron. It recreates the light cycle matches that are played out during the movie. It currently supports 2 players.
+This game is a homage to the 1982 cult classic, Tron. It recreates the light cycle matches that are played out during the movie. It currently supports 1-2 human players and 0-3 bots.
 The object of the game is to stay alive the longest by not crashing into the walls, the opponent's trail, or your own trail.
 
 [In-Game Video](http://www.youtube.com/watch?v=w9NLE6MrQSg)
-## Motivation
-
-Learning to code + nostalgia = a winning combination
 
 ## Installation
 
@@ -31,7 +28,7 @@ Python 3 is required! No other external modules are needed.
 ```bash
 
 # Clone the repo
-$ git clone https://github.com/reeses-pieces/tron.git
+$ git clone https://github.com/nreis11/tron.git
 
 # Run main.py to start.
 $ python3 main.py
@@ -39,8 +36,8 @@ $ python3 main.py
 ```
 
 ## Known issues
-- Mac required (afplay) for audio to work correctly
-- Collision detection is dodgy at higher light cycle speeds.
+
+- Mac required (afplay) for the audio to work correctly
 
 ## License
 

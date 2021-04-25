@@ -6,7 +6,7 @@ class Player(turtle.Turtle):
 
     CRASHED = "crashed"
     READY = "ready"
-    DIED = "died"
+    DEAD = "dead"
 
     def __init__(self, name, start_x, start_y, color):
         super(Player, self).__init__()
@@ -77,7 +77,6 @@ class Player(turtle.Turtle):
     def lose_life(self):
         """Take away one life from player"""
         self.lives -= 1
-        self.status = self.CRASHED
 
     def has_lives(self):
         return self.lives > 0

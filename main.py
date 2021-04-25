@@ -53,6 +53,7 @@ class MainMenu(object):
         self.screen.tracer(0)
 
     def create_pens(self):
+        """Create selection cursor and text pen for option values."""
         self.create_cursor()
         self.create_text_pen()
 
@@ -122,6 +123,7 @@ class MainMenu(object):
             self.pen.cursor_pos -= 1
 
     def increment_value(self):
+        """Increases value for option according to cursor position."""
         if self.pen.cursor_pos in self.option_pos_map:
             key = self.option_pos_map[self.pen.cursor_pos]
             max_value = self.options[key]["max"]
@@ -130,6 +132,7 @@ class MainMenu(object):
                 self.draw_option_values()
 
     def decrement_value(self):
+        """Decreases value for option according to cursor position."""
         if self.pen.cursor_pos in self.option_pos_map:
             key = self.option_pos_map[self.pen.cursor_pos]
             min_value = self.options[key]["min"]

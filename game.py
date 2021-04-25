@@ -96,8 +96,7 @@ class Game(object):
         return (x, y)
 
     def position_range_adder(self, player):
-        """If speed is > 1, the positions aren't recorded between the speed gap. Therefore,
-        this function is needed to fill in the gaps and append the missing positions"""
+        """Calculates and collects all missing positions given prev and current position."""
         positions = []
 
         def get_missing_positions(prev, curr, step):
@@ -126,8 +125,7 @@ class Game(object):
         return positions
 
     def create_player(self):
-        """Two players are always created. P1 is blue.
-        P2 is Yellow, P3 is Red, P4 is Green"""
+        """P1 is blue, P2 is Yellow, P3 is Red, P4 is Green, P5 is Purple."""
         colors = ["#CF1FDE", "#33cc33", "#ff0000", "#E3E329", "#40BBE3"]
 
         for i in range(self.humans):
@@ -152,6 +150,7 @@ class Game(object):
             particle.explode(player.xcor(), player.ycor())
 
     def is_collision(self, x, y):
+        """Checks for any visited coordinate and if the coordinate is out of bounds."""
         if x < 0 or y < 0:
             return True
         try:
@@ -235,14 +234,24 @@ class Game(object):
         self.game_text_pen.write(f"{winner} wins!", align="center", font=Game.GAME_FONT)
 
     def reset_grid(self):
-        for player in self.players:
+        alive_players = [
+            player for player in self.players if not player.status == player.DEAD
+        ]
+        for player in alive_players:
             player.clear_lightcycle()
             if player.has_lives():
                 x, y = self.get_random_coord()
                 player.respawn(x, y)
             else:
-                player.status = player.DIED
+                player.status = player.DEAD
+                if not player.is_ai:
+                    self.humans -= 1
 
+        # Speed up game if no humans are alive
+        if self.humans == 0:
+            for player in alive_players:
+                if player.is_ai:
+                    player.set_custom_speed()
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -289,6 +298,7 @@ class Game(object):
         self.start_bgm()
 
     def end_game(self):
+        """Game over cleanup."""
         self.game_on = False
         turtle.ontimer(self.display_winner(), 2000)
         self.screen.clear()
@@ -296,27 +306,26 @@ class Game(object):
             os.system("killall afplay")
 
     def make_turn_based_on_collision_distance(self, ai):
-        """Get flanking distances to collision."""
+        """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
         x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
         i = 1
         while True:
-            if ai.heading() == 0 or ai.heading() == 180:
-                if self.is_collision(x, y + i):
-                    ai.go_south()
-                    return
-                if self.is_collision(x, y - i):
-                    ai.go_north()
-                    return
-            elif ai.heading() == 90 or ai.heading() == 270:
-                if self.is_collision(x - i, y):
-                    ai.go_east()
-                    return
-                if self.is_collision(x + i, y):
-                    ai.go_west()
-                    return
+            if ai.heading() == 0 and self.is_collision(x, y + i):
+                ai.go_south()
+                return
+            elif ai.heading() == 180 and self.is_collision(x, y - i):
+                ai.go_north()
+                return
+            elif ai.heading() == 90 and self.is_collision(x - i, y):
+                ai.go_east()
+                return
+            elif ai.heading() == 270 and self.is_collision(x + i, y):
+                ai.go_west()
+                return
             i += 1
 
     def is_near_collision(self, ai):
+        """Checks for nearby collision in the direction of the player."""
         i = 1
         x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
         while i <= ai.min_distance_collision:
@@ -331,9 +340,11 @@ class Game(object):
         return False
 
     def ai_logic(self, ai):
+        """Make decisions based on nearby collision. Frame delay equates to reflexes."""
         ai.frame += 1
         if ai.frame >= ai.frame_delay and self.is_near_collision(ai):
             self.make_turn_based_on_collision_distance(ai)
+            ai.set_min_distance_collision()
             ai.reset_frames()
 
     def set_adjacent_coords_as_visited(self, player, x, y, amount=1):
@@ -365,7 +376,7 @@ class Game(object):
             self.screen.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
-                if player.status == player.DIED:
+                if player.status == player.DEAD:
                     continue
 
                 if player.is_ai:
@@ -375,7 +386,7 @@ class Game(object):
                 positions = self.position_range_adder(player)
                 for x, y in positions:
                     if self.is_collision(x, y):
-                        player.lose_life()
+                        player.status = player.CRASHED
                         break
                     else:
                         self.grid[y][x] = 1
@@ -388,6 +399,7 @@ class Game(object):
             # If a player crashes, particles explode and reset lightcycles
             for player in self.players:
                 if player.status == player.CRASHED:
+                    player.lose_life()
                     self.particles_explode(player)
                     if os.name == "posix":
                         os.system("afplay sounds/explosion.wav&")
@@ -400,5 +412,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=3, bots=3, humans=0, grid_size=2)
+    gameObj = Game(testing=False, difficulty=2, bots=2, humans=1, grid_size=2)
     gameObj.start_game()
