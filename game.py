@@ -265,8 +265,7 @@ class Game(object):
             os.system(f"afplay {bgm}&")
             os.system("say grid is live!&")
         elif os.name == "nt":
-            winsound.SND_ASYNC
-            winsound.PlaySound(bgm)
+            winsound.PlaySound(bgm, winsound.SND_ASYNC)
 
     def countdown(self, num):
         self.game_text_pen.pendown()
@@ -322,8 +321,9 @@ class Game(object):
         if os.name == "posix":
             os.system(f"afplay {sound}&")
         elif os.name == "nt":
-            winsound.SND_ASYNC
-            winsound.PlaySound(sound)
+            # winsound.PlaySound(sound, winsound.SND_ASYNC)
+            # can't play simoutaneous sounds
+            pass
 
     def make_turn_based_on_collision_distance(self, ai):
         """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""

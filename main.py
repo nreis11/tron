@@ -292,7 +292,7 @@ class MainMenu(object):
             os.system(f"afplay {bgm_path}&")
         elif os.name == "nt":
             winsound.SND_ASYNC
-            winsound.PlaySound(bgm_path)
+            winsound.PlaySound(bgm_path, winsound.SND_ASYNC)
 
     def start_menu(self):
         """Main menu loop."""
