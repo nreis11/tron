@@ -5,6 +5,9 @@ import os
 import sys
 import game
 
+if os.name == "nt":
+    import winsound
+
 
 class MainMenu(object):
     """Main menu creates a 800 x 600 window to allow you to view the controls, change the grid size, start the game, and quit the game."""
@@ -41,7 +44,6 @@ class MainMenu(object):
             },
         }
         self.option_pos_map = {5: "humans", 4: "bots", 3: "difficulty", 2: "grid_size"}
-        self.start_music()
         self.state = self.MENU
 
     def set_screen(self):
@@ -200,10 +202,9 @@ class MainMenu(object):
             self.press_enter_or_space_controls()
 
     def press_enter_or_space_main(self):
-        """Controls how enter or space function depending on the cursor position for the main screen. """
+        """Controls how enter or space function depending on the cursor position for the main screen."""
         if self.pen.cursor_pos == 3:
             self.screen.clear()
-            self.stop_music()
             self.state = self.GAME
         elif self.pen.cursor_pos == 2:
             self.screen_stack.append("options")
@@ -273,6 +274,7 @@ class MainMenu(object):
             y_offset -= 65
 
     def reset_menu(self):
+        self.stop_music()
         self.set_screen()
         self.display_main()
         self.create_cursor()
@@ -281,14 +283,20 @@ class MainMenu(object):
     def stop_music(self):
         if os.name == "posix":
             os.system("killall afplay")
+        elif os.name == "nt":
+            winsound.PlaySound(None, winsound.SND_PURGE)
 
     def start_music(self):
+        bgm_path = "sounds/main_menu.wav"
         if os.name == "posix":
-            self.stop_music()
-            os.system("afplay sounds/main_menu.m4a&")
+            os.system(f"afplay {bgm_path}&")
+        elif os.name == "nt":
+            winsound.SND_ASYNC
+            winsound.PlaySound(bgm_path)
 
     def start_menu(self):
         """Main menu loop."""
+        self.start_music()
 
         # Change cursor position based on keybindings
         while self.state == self.MENU:
@@ -296,6 +304,7 @@ class MainMenu(object):
             self.set_keyboard_bindings()
             self.screen.update()
             while self.state == self.GAME:
+                self.stop_music()
                 # Trim options dict to only contain name and value
                 options = {key: value["value"] for key, value in self.options.items()}
                 gameObj = game.Game(**options)

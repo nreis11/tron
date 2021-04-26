@@ -10,6 +10,10 @@ import particle
 import player
 import ai
 
+# For windows audio
+if os.name == "nt":
+    import winsound
+
 
 class Game(object):
     """Creates screen, draws border, creates all sprites, maps keys, draws score, and
@@ -255,10 +259,14 @@ class Game(object):
         self.grid = self.create_grid()
 
     def start_bgm(self):
+        bgm = "sounds/gameplay.wav"
         if os.name == "posix":
             os.system("killall afplay")
-            os.system("afplay sounds/gameplay.m4a&")
+            os.system(f"afplay {bgm}&")
             os.system("say grid is live!&")
+        elif os.name == "nt":
+            winsound.SND_ASYNC
+            winsound.PlaySound(bgm)
 
     def countdown(self, num):
         self.game_text_pen.pendown()
@@ -302,8 +310,20 @@ class Game(object):
         self.game_on = False
         turtle.ontimer(self.display_winner(), 2000)
         self.screen.clear()
+        self.stop_music()
+
+    def stop_music(self):
         if os.name == "posix":
             os.system("killall afplay")
+        elif os.name == "nt":
+            winsound.PlaySound(None, winsound.SND_PURGE)
+
+    def play_sfx(self, sound):
+        if os.name == "posix":
+            os.system(f"afplay {sound}&")
+        elif os.name == "nt":
+            winsound.SND_ASYNC
+            winsound.PlaySound(sound)
 
     def make_turn_based_on_collision_distance(self, ai):
         """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
@@ -401,8 +421,7 @@ class Game(object):
                 if player.status == player.CRASHED:
                     player.lose_life()
                     self.particles_explode(player)
-                    if os.name == "posix":
-                        os.system("afplay sounds/explosion.wav&")
+                    self.play_sfx("sounds/explosion.wav")
                     self.draw_score()
                     if self.is_game_over():
                         self.end_game()
