@@ -9,6 +9,7 @@ import random
 import particle
 import player
 import ai
+import grid
 
 # For windows audio
 if os.name == "nt":
@@ -59,11 +60,10 @@ class Game(object):
     def create_grid(self):
         width = self.x_boundary * 2
         height = self.y_boundary * 2
-        return [[0 for x in range(width)] for y in range(height)]
+        return grid.Grid(width, height)
 
     def create_screen(self):
-        """If run directly, creates screen based on user choice from self.screen_size().
-        Otherwise, screen is automatically created with arguments from main.py script."""
+        """Maximizes screen based on monitor size."""
         self.screen = turtle.Screen()
         self.screen.bgcolor("black")
         self.screen.setup(1.0, 1.0)
@@ -123,9 +123,9 @@ class Game(object):
             positions = get_missing_positions(prev_ycor, curr_ycor, -1)
         # Translate to grid coordinates
         if player.heading() == 0 or player.heading() == 180:
-            positions = [self.get_grid_coord(x, prev_ycor) for x in positions]
+            positions = [self.grid.get_grid_coord(x, prev_ycor) for x in positions]
         elif player.heading() == 90 or player.heading() == 270:
-            positions = [self.get_grid_coord(prev_xcor, y) for y in positions]
+            positions = [self.grid.get_grid_coord(prev_xcor, y) for y in positions]
         return positions
 
     def create_player(self):
@@ -152,16 +152,6 @@ class Game(object):
         for particle in self.particles:
             particle.change_color(player)
             particle.explode(player.xcor(), player.ycor())
-
-    def is_collision(self, x, y):
-        """Checks for any visited coordinate and if the coordinate is out of bounds."""
-        if x < 0 or y < 0:
-            return True
-        try:
-            return self.grid[y][x]
-        except IndexError:
-            # Out of Bounds
-            return True
 
     def set_relative_keyboard_bindings(self):
         """Maps relative controls to player movement."""
@@ -274,11 +264,6 @@ class Game(object):
             os.system(f"say {num}&")
         self.game_text_pen.clear()
 
-    def get_grid_coord(self, x, y):
-        x = int(x + (self.width / 2) - self.out_of_bounds_length)
-        y = int(y + (self.height / 2) - self.out_of_bounds_length)
-        return (x, y)
-
     def create_pens(self):
         """Initialize all pens."""
         self.border_pen = turtle.Turtle()
@@ -327,59 +312,30 @@ class Game(object):
 
     def make_turn_based_on_collision_distance(self, ai):
         """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
-        x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
+        x, y = self.grid.get_grid_coord(ai.xcor(), ai.ycor())
         i = 1
         while True:
-            if ai.heading() == 0 and self.is_collision(x, y + i):
+            if ai.heading() == 0 and self.grid.is_collision(x, y + i):
                 ai.go_south()
                 return
-            elif ai.heading() == 180 and self.is_collision(x, y - i):
+            elif ai.heading() == 180 and self.grid.is_collision(x, y - i):
                 ai.go_north()
                 return
-            elif ai.heading() == 90 and self.is_collision(x - i, y):
+            elif ai.heading() == 90 and self.grid.is_collision(x - i, y):
                 ai.go_east()
                 return
-            elif ai.heading() == 270 and self.is_collision(x + i, y):
+            elif ai.heading() == 270 and self.grid.is_collision(x + i, y):
                 ai.go_west()
                 return
             i += 1
 
-    def is_near_collision(self, ai):
-        """Checks for nearby collision in the direction of the player."""
-        i = 1
-        x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
-        while i <= ai.min_distance_collision:
-            if (
-                (ai.heading() == 0 and self.is_collision(x + i, y))
-                or (ai.heading() == 180 and self.is_collision(x - i, y))
-                or (ai.heading() == 90 and self.is_collision(x, y + i))
-                or (ai.heading() == 270 and self.is_collision(x, y - i))
-            ):
-                return True
-            i += 1
-        return False
-
     def ai_logic(self, ai):
         """Make decisions based on nearby collision. Frame delay equates to reflexes."""
         ai.frame += 1
-        if ai.frame >= ai.frame_delay and self.is_near_collision(ai):
+        if ai.frame >= ai.frame_delay and self.grid.is_near_collision(ai):
             self.make_turn_based_on_collision_distance(ai)
             ai.set_min_distance_collision()
             ai.reset_frames()
-
-    def set_adjacent_coords_as_visited(self, player, x, y, amount=1):
-        """Sets adjecent coordinates in all directions to visited by certain amount."""
-        try:
-            for num in range(1, amount + 1):
-                if player.heading() == 0 or player.heading() == 180:
-                    self.grid[y - num][x] = 1
-                    self.grid[y + num][x] = 1
-                elif player.heading() == 90 or player.heading() == 270:
-                    self.grid[y][x + num] = 1
-                    self.grid[y][x - num] = 1
-        except IndexError:
-            # Ignore out of bounds activations
-            pass
 
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
@@ -396,21 +352,19 @@ class Game(object):
             self.screen.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
-                if player.status == player.DEAD:
-                    continue
-
-                if player.is_ai:
-                    self.ai_logic(player)
-                player.set_prev_coord()
-                player.forward(player.fwd_speed)
-                positions = self.position_range_adder(player)
-                for x, y in positions:
-                    if self.is_collision(x, y):
-                        player.status = player.CRASHED
-                        break
-                    else:
-                        self.grid[y][x] = 1
-                        self.set_adjacent_coords_as_visited(player, x, y, 3)
+                if player.status != player.DEAD:
+                    if player.is_ai:
+                        self.ai_logic(player)
+                    player.set_prev_coord()
+                    player.forward(player.fwd_speed)
+                    positions = self.position_range_adder(player)
+                    for x, y in positions:
+                        if self.grid.is_collision(x, y):
+                            player.status = player.CRASHED
+                            break
+                        else:
+                            self.grid.matrix[y][x] = 1
+                            self.grid.set_adjacent_coords_as_visited(player, x, y, 3)
 
             # Particle movement
             for particle in self.particles:
@@ -431,5 +385,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=2, bots=2, humans=1, grid_size=2)
+    gameObj = Game(testing=False, difficulty=2, bots=2, humans=0, grid_size=2)
     gameObj.start_game()
