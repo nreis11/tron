@@ -12,31 +12,6 @@ class Grid:
         y = int(y + self.height / 2)
         return (x, y)
 
-    def is_collision(self, x, y):
-        """Checks for any visited coordinate and if the coordinate is out of bounds."""
-        if x < 0 or y < 0:
-            return True
-        try:
-            return self.matrix[y][x]
-        except IndexError:
-            # Out of Bounds
-            return True
-
-    def is_near_collision(self, ai):
-        """Checks for nearby collision in the direction of the player."""
-        i = 1
-        x, y = self.get_grid_coord(ai.xcor(), ai.ycor())
-        while i <= ai.min_distance_collision:
-            if (
-                (ai.heading() == 0 and self.is_collision(x + i, y))
-                or (ai.heading() == 180 and self.is_collision(x - i, y))
-                or (ai.heading() == 90 and self.is_collision(x, y + i))
-                or (ai.heading() == 270 and self.is_collision(x, y - i))
-            ):
-                return True
-            i += 1
-        return False
-
     def set_adjacent_coords_as_visited(self, player, x, y, amount=1):
         """Sets adjecent coordinates in all directions to visited by certain amount."""
         try:

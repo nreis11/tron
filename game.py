@@ -245,7 +245,7 @@ class Game(object):
         if self.humans == 0:
             for player in alive_players:
                 if player.is_ai:
-                    player.set_custom_speed()
+                    player.set_speed(6)
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -310,30 +310,11 @@ class Game(object):
             # can't play simoutaneous sounds
             pass
 
-    def make_turn_based_on_collision_distance(self, ai):
-        """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
-        x, y = self.grid.get_grid_coord(ai.xcor(), ai.ycor())
-        i = 1
-        while True:
-            if ai.heading() == 0 and self.grid.is_collision(x, y + i):
-                ai.go_south()
-                return
-            elif ai.heading() == 180 and self.grid.is_collision(x, y - i):
-                ai.go_north()
-                return
-            elif ai.heading() == 90 and self.grid.is_collision(x - i, y):
-                ai.go_east()
-                return
-            elif ai.heading() == 270 and self.grid.is_collision(x + i, y):
-                ai.go_west()
-                return
-            i += 1
-
     def ai_logic(self, ai):
         """Make decisions based on nearby collision. Frame delay equates to reflexes."""
         ai.frame += 1
-        if ai.frame >= ai.frame_delay and self.grid.is_near_collision(ai):
-            self.make_turn_based_on_collision_distance(ai)
+        if ai.frame >= ai.frame_delay and ai.is_near_collision(self.grid):
+            ai.make_turn_based_on_collision_distance(self.grid)
             ai.set_min_distance_collision()
             ai.reset_frames()
 
@@ -359,7 +340,7 @@ class Game(object):
                     player.forward(player.fwd_speed)
                     positions = self.position_range_adder(player)
                     for x, y in positions:
-                        if self.grid.is_collision(x, y):
+                        if player.is_collision(self.grid, x, y):
                             player.status = player.CRASHED
                             break
                         else:
@@ -385,5 +366,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=2, bots=2, humans=0, grid_size=2)
+    gameObj = Game(testing=False, difficulty=2, bots=2, humans=1, grid_size=2)
     gameObj.start_game()

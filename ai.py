@@ -15,17 +15,50 @@ class Ai(player.Player):
     def reset_frames(self):
         self.frame = 0
 
-    def set_speed(self):
-        """Set speed based on difficulty (1-3)."""
-        self.fwd_speed = self.difficulty
-
-    def set_custom_speed(self):
-        self.fwd_speed = 6
+    def set_speed(self, speed=0):
+        """Set speed based on difficulty (1-3) or speed arg if provided."""
+        self.fwd_speed = speed or self.difficulty
 
     def set_min_distance_collision(self):
         self.min_distance_collision = 100 // self.difficulty + random.choice(
             [num for num in range(-20, 20, 10)]
         )
+
+    def make_turn_based_on_collision_distance(self, grid):
+        """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
+        x, y = grid.get_grid_coord(self.xcor(), self.ycor())
+        i = 1
+        while True:
+            if self.heading() == 0 or self.heading() == 180:
+                if self.is_collision(grid, x, y + i):
+                    self.go_south()
+                    return
+                elif self.is_collision(grid, x, y - i):
+                    self.go_north()
+                    return
+            elif self.heading() == 90 or self.heading() == 270:
+                if self.is_collision(grid, x - i, y):
+                    self.go_east()
+                    return
+                elif self.is_collision(grid, x + i, y):
+                    self.go_west()
+                    return
+            i += 1
+
+    def is_near_collision(self, grid):
+        """Checks for nearby collision in the direction of the player."""
+        i = 1
+        x, y = grid.get_grid_coord(self.xcor(), self.ycor())
+        while i <= self.min_distance_collision:
+            if (
+                (self.heading() == 0 and self.is_collision(grid, x + i, y))
+                or (self.heading() == 180 and self.is_collision(grid, x - i, y))
+                or (self.heading() == 90 and self.is_collision(grid, x, y + i))
+                or (self.heading() == 270 and self.is_collision(grid, x, y - i))
+            ):
+                return True
+            i += 1
+        return False
 
     def respawn(self, x, y):
         super(Ai, self).respawn(x, y)

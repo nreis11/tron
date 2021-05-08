@@ -68,6 +68,16 @@ class Player(turtle.Turtle):
         prev_y = int(self.ycor())
         self.prev_pos = (prev_x, prev_y)
 
+    def is_collision(self, grid, x, y):
+        """Checks for any visited coordinate and if the coordinate is out of bounds."""
+        if x < 0 or y < 0:
+            return True
+        try:
+            return grid.matrix[y][x]
+        except IndexError:
+            # Out of Bounds
+            return True
+
     def clear_lightcycle(self):
         """Removes light cycle from screen"""
         self.hideturtle()
