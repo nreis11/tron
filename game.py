@@ -242,10 +242,10 @@ class Game(object):
                     self.humans -= 1
 
         # Speed up game if no humans are alive
-        if self.humans == 0:
-            for player in alive_players:
-                if player.is_ai:
-                    player.set_speed(6)
+        # if self.humans == 0:
+        #     for player in alive_players:
+        #         if player.is_ai:
+        #             player.set_speed(6)
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -310,14 +310,6 @@ class Game(object):
             # can't play simoutaneous sounds
             pass
 
-    def ai_logic(self, ai):
-        """Make decisions based on nearby collision. Frame delay equates to reflexes."""
-        ai.frame += 1
-        if ai.frame >= ai.frame_delay and ai.is_near_collision(self.grid):
-            ai.make_turn_based_on_collision_distance(self.grid)
-            ai.set_min_distance_collision()
-            ai.reset_frames()
-
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
         run continuously until a player runs out of lives."""
@@ -335,7 +327,7 @@ class Game(object):
             for player in self.players:
                 if player.status != player.DEAD:
                     if player.is_ai:
-                        self.ai_logic(player)
+                        player.run_ai_logic(self.grid)
                     player.set_prev_coord()
                     player.forward(player.fwd_speed)
                     positions = self.position_range_adder(player)
@@ -344,10 +336,9 @@ class Game(object):
                             player.status = player.CRASHED
                             break
                         else:
-                            self.grid.matrix[y][x] = 1
-                            self.grid.set_adjacent_coords_as_visited(player, x, y, 3)
+                            self.grid.set_pos_to_visited(x, y)
+                            self.grid.set_adjacent_coords_as_visited(player, x, y, 4)
 
-            # Particle movement
             for particle in self.particles:
                 particle.move()
 
@@ -366,5 +357,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=2, bots=2, humans=1, grid_size=2)
+    gameObj = Game(testing=False, difficulty=2, bots=2, humans=0, grid_size=2)
     gameObj.start_game()

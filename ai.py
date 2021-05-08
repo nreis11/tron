@@ -12,6 +12,17 @@ class Ai(player.Player):
         self.min_distance_collision = 100 // self.difficulty
         self.is_ai = True
 
+    def run_ai_logic(self, grid):
+        """Make decisions based on nearby collision. Frame delay equates to reflexes."""
+        self.increment_frames()
+        if self.frame >= self.frame_delay and self.is_near_collision(grid):
+            self.make_smart_turn(grid)
+            # self.set_min_distance_collision()
+            self.reset_frames()
+
+    def increment_frames(self):
+        self.frame += 1
+
     def reset_frames(self):
         self.frame = 0
 
@@ -24,7 +35,7 @@ class Ai(player.Player):
             [num for num in range(-20, 20, 10)]
         )
 
-    def make_turn_based_on_collision_distance(self, grid):
+    def make_smart_turn(self, grid):
         """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
         x, y = grid.get_grid_coord(self.xcor(), self.ycor())
         i = 1
