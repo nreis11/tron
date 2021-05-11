@@ -17,7 +17,7 @@ class Ai(player.Player):
         self.increment_frames()
         if self.frame >= self.frame_delay and self.is_near_collision(grid):
             self.make_smart_turn(grid)
-            # self.set_min_distance_collision()
+            # self.randomize_min_distance_collision()
             self.reset_frames()
 
     def increment_frames(self):
@@ -30,7 +30,7 @@ class Ai(player.Player):
         """Set speed based on difficulty (1-3) or speed arg if provided."""
         self.fwd_speed = speed or self.difficulty
 
-    def set_min_distance_collision(self):
+    def randomize_min_distance_collision(self):
         self.min_distance_collision = 100 // self.difficulty + random.choice(
             [num for num in range(-20, 20, 10)]
         )

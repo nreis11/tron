@@ -16,7 +16,7 @@ alt="IMAGE gameplay" width="800" height="600" border="0" /></a>
 
 ## Synopsis
 
-This game is a homage to the 1982 cult classic, Tron. It recreates the light cycle matches that are played out during the movie. It currently supports 1-2 human players and 0-3 bots.
+This game is a homage to the 1982 cult classic, Tron. It recreates the light cycle battles that are played out during the movie. It currently supports 1-2 human players and 0-3 bots.
 The object of the game is to stay alive the longest by not crashing into the walls, the opponent's trail, or your own trail.
 
 [In-Game Video](http://www.youtube.com/watch?v=w9NLE6MrQSg)
@@ -37,7 +37,7 @@ $ python3 main.py
 
 ## Known issues
 
-- Mac required (afplay) for the audio to work correctly
+- Windows sound support is limited
 
 ## License
 

@@ -78,7 +78,6 @@ class Game(object):
         self.border_pen.setposition(self.x_boundary, self.y_boundary)
         self.border_pen.pendown()
         self.border_pen.setheading(180)  # Start drawing west
-        # Square is drawn
         for side in range(4):
             # Vertical
             if side % 2:
@@ -329,7 +328,6 @@ class Game(object):
         while self.game_on:
             # Set controls based on menu setting
             self.set_relative_keyboard_bindings() if self.relative_controls else self.set_abs_keyboard_bindings()
-
             # Activate key mappings
             self.screen.listen()
             # Set players into motion and add converted coords to positions
@@ -360,5 +358,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=2, bots=2, humans=0, grid_size=2)
+    gameObj = Game(testing=False, difficulty=3, bots=4, humans=0, grid_size=3)
     gameObj.start_game()

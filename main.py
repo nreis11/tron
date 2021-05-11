@@ -47,7 +47,7 @@ class MainMenu(object):
         self.state = self.MENU
 
     def set_screen(self):
-        """Create medium sized main menu."""
+        """Create maximized main menu screen."""
         self.screen.bgcolor("black")
         self.screen.bgpic("images/main_menu.gif")
         self.screen.setup(self.window_width, self.window_height)
@@ -247,9 +247,7 @@ class MainMenu(object):
             self.text_pen.clear()
 
     def display_controls(self):
-        """Displays control screen. User can choose between relative or absolute
-        control scheme.
-        """
+        """Displays control screen. User can choose between relative or absolute control scheme."""
         img_name = "controls_absolute"
         if self.pen.cursor_pos == 1:
             img_name = "controls_relative"
@@ -324,7 +322,7 @@ class MainMenu(object):
                 self.state = self.MENU
                 self.reset_menu()
 
-        if self.state == "QUIT":
+        if self.state == self.QUIT:
             self.quit()
 
     def quit(self):
