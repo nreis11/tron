@@ -10,7 +10,7 @@ if os.name == "nt":
 
 
 class MainMenu(object):
-    """Main menu creates a 800 x 600 window to allow you to view the controls, change the grid size, start the game, and quit the game."""
+    """Main menu creates a window to allow you to view the controls, edit options, start the game, and quit the game."""
 
     MENU = "MENU"
     GAME = "GAME"
@@ -61,7 +61,8 @@ class MainMenu(object):
 
     def create_cursor(self):
         self.pen = turtle.Turtle()
-        self.pen.shapesize(stretch_wid=3, stretch_len=5, outline=None)
+        self.pen.shape("square")
+        self.pen.shapesize(stretch_wid=0.4, stretch_len=1.1)
         self.pen.cursor_pos = 4
         self.pen.pencolor("#40BBE3")
         self.pen.penup()
@@ -70,6 +71,7 @@ class MainMenu(object):
     def create_text_pen(self):
         self.text_pen = turtle.Turtle()
         self.text_pen.color("white")
+        self.text_pen.speed(0)
         self.text_pen.penup()
         self.text_pen.hideturtle()
 
@@ -98,21 +100,21 @@ class MainMenu(object):
         """Controls: Relative = 1, Absolute = 2."""
         self.cursor_positions = 2
         if self.pen.cursor_pos == 1:
-            self.pen.setposition(-450, -345)
+            self.pen.setposition(-460, -345)
         else:
-            self.pen.setposition(240, -345)
+            self.pen.setposition(230, -345)
         self.display_controls()
 
     def set_cursor_options(self):
         self.cursor_positions = 4
         if self.pen.cursor_pos == 4:
-            self.pen.setposition(-500, 195)
+            self.pen.setposition(-510, 195)
         elif self.pen.cursor_pos == 3:
-            self.pen.setposition(-500, 63)
+            self.pen.setposition(-510, 63)
         elif self.pen.cursor_pos == 2:
-            self.pen.setposition(-500, -67)
+            self.pen.setposition(-510, -67)
         elif self.pen.cursor_pos == 1:
-            self.pen.setposition(-500, -197)
+            self.pen.setposition(-510, -200)
 
     def cursor_up(self):
         """Increase cursor pos by 1."""
@@ -273,7 +275,7 @@ class MainMenu(object):
             self.options["grid_size"],
         ]
         for option in options:
-            self.text_pen.setposition(275, y_offset)
+            self.text_pen.setposition(300, y_offset)
             self.text_pen.pendown()
             value = option["value"]
             if "labels" in option:

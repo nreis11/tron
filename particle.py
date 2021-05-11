@@ -31,4 +31,4 @@ class Particle(turtle.Turtle):
 
     def change_color(self, player):
         pencolor, fillcolor = player.color()
-        self.color(pencolor)
+        self.color(pencolor, "black")

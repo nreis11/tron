@@ -15,7 +15,7 @@ class Grid:
         y = int(y + self.height / 2)
         return (x, y)
 
-    def set_adjacent_coords_as_visited(self, player, x, y, amount=1):
+    def set_adjacent_coords_as_visited(self, player, x, y, amount):
         """Sets adjecent coordinates in all directions to visited by certain amount."""
         try:
             for num in range(1, amount + 1):

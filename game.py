@@ -20,7 +20,7 @@ class Game(object):
     """Creates screen, draws border, creates all sprites, maps keys, draws score, and
     runs game loop."""
 
-    GAME_FONT = ("Verdana", 36, "bold")
+    GAME_FONT = ("Phosphate", 42, "bold")
 
     def __init__(
         self,
@@ -156,16 +156,18 @@ class Game(object):
     def set_relative_keyboard_bindings(self):
         """Maps relative controls to player movement."""
         # Set P1 keyboard bindings
-        turtle.onkeypress(self.players[0].turn_left, "a")
-        turtle.onkeypress(self.players[0].turn_right, "d")
-        turtle.onkeypress(self.players[0].accelerate, "w")
-        turtle.onkeypress(self.players[0].decelerate, "s")
+        if self.humans >= 1:
+            turtle.onkeypress(self.players[0].turn_left, "a")
+            turtle.onkeypress(self.players[0].turn_right, "d")
+            turtle.onkeypress(self.players[0].accelerate, "w")
+            turtle.onkeypress(self.players[0].decelerate, "s")
 
         # Set P2 keyboard bindings
-        turtle.onkeypress(self.players[1].turn_left, "Left")
-        turtle.onkeypress(self.players[1].turn_right, "Right")
-        turtle.onkeypress(self.players[1].accelerate, "Up")
-        turtle.onkeypress(self.players[1].decelerate, "Down")
+        if self.humans >= 2:
+            turtle.onkeypress(self.players[1].turn_left, "Left")
+            turtle.onkeypress(self.players[1].turn_right, "Right")
+            turtle.onkeypress(self.players[1].accelerate, "Up")
+            turtle.onkeypress(self.players[1].decelerate, "Down")
 
     def set_abs_keyboard_bindings(self):
         """Maps absolute controls to player movement."""
@@ -192,14 +194,14 @@ class Game(object):
                 self.abs_key_mapper(self.players[1], "Right", "Left", "Down", "Up")
 
     def abs_key_mapper(self, player, left, right, accel, decel):
-        """Maps passed in args to player controls"""
+        """Maps args to player controls"""
         turtle.onkeypress(player.turn_left, left)
         turtle.onkeypress(player.turn_right, right)
         turtle.onkeypress(player.accelerate, accel)
         turtle.onkeypress(player.decelerate, decel)
 
     def draw_score(self):
-        """Using a turtle, this draws the score on the screen once, then clears once
+        """This draws the score on the screen once, then clears once
         the score changes. Start position is upper left corner. A dedicated score
         pen is needed because the clear function is called every time the score
         is updated."""
@@ -242,10 +244,10 @@ class Game(object):
                     self.humans -= 1
 
         # Speed up game if no humans are alive
-        # if self.humans == 0:
-        #     for player in alive_players:
-        #         if player.is_ai:
-        #             player.set_speed(6)
+        if self.humans == 0:
+            for player in alive_players:
+                if player.is_ai:
+                    player.set_speed(6)
         self.grid = self.create_grid()
 
     def start_bgm(self):
@@ -292,7 +294,7 @@ class Game(object):
     def end_game(self):
         """Game over cleanup."""
         self.game_on = False
-        turtle.ontimer(self.display_winner(), 2000)
+        turtle.ontimer(self.display_winner(), 3000)
         self.screen.clear()
         self.stop_music()
 
@@ -310,34 +312,35 @@ class Game(object):
             # can't play simoutaneous sounds
             pass
 
+    def analyze_positions(self, player, positions):
+        """Check for collision. If no collision, set pos to visited."""
+        for x, y in positions:
+            if player.is_collision(self.grid, x, y):
+                player.status = player.CRASHED
+                return
+            else:
+                self.grid.set_pos_to_visited(x, y)
+                self.grid.set_adjacent_coords_as_visited(player, x, y, 5)
+
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
         run continuously until a player runs out of lives."""
 
         while self.game_on:
             # Set controls based on menu setting
-            if self.relative_controls:
-                self.set_relative_keyboard_bindings()
-            else:
-                self.set_abs_keyboard_bindings()
+            self.set_relative_keyboard_bindings() if self.relative_controls else self.set_abs_keyboard_bindings()
 
             # Activate key mappings
             self.screen.listen()
             # Set players into motion and add converted coords to positions
             for player in self.players:
-                if player.status != player.DEAD:
+                if player.status == player.READY:
                     if player.is_ai:
                         player.run_ai_logic(self.grid)
                     player.set_prev_coord()
                     player.forward(player.fwd_speed)
                     positions = self.position_range_adder(player)
-                    for x, y in positions:
-                        if player.is_collision(self.grid, x, y):
-                            player.status = player.CRASHED
-                            break
-                        else:
-                            self.grid.set_pos_to_visited(x, y)
-                            self.grid.set_adjacent_coords_as_visited(player, x, y, 4)
+                    self.analyze_positions(player, positions)
 
             for particle in self.particles:
                 particle.move()
