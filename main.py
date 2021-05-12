@@ -100,9 +100,9 @@ class MainMenu(object):
         """Controls: Relative = 1, Absolute = 2."""
         self.cursor_positions = 2
         if self.pen.cursor_pos == 1:
-            self.pen.setposition(-460, -345)
+            self.pen.setposition(-460, -315)
         else:
-            self.pen.setposition(230, -345)
+            self.pen.setposition(230, -315)
         self.display_controls()
 
     def set_cursor_options(self):
@@ -131,7 +131,7 @@ class MainMenu(object):
         if self.pen.cursor_pos in self.option_pos_map:
             name = self.option_pos_map[self.pen.cursor_pos]
             max_value = self.options[name]["max"]
-            if self.options[name]["value"] < max_value:
+            if self.get_option_value(name) < max_value:
                 self.options[name]["value"] += 1
                 self.draw_option_values()
 
@@ -140,7 +140,7 @@ class MainMenu(object):
         if self.pen.cursor_pos in self.option_pos_map:
             name = self.option_pos_map[self.pen.cursor_pos]
             min_value = self.options[name]["min"]
-            if self.options[name]["value"] > min_value:
+            if self.get_option_value(name) > min_value:
                 self.options[name]["value"] -= 1
                 self.draw_option_values()
 
@@ -151,9 +151,7 @@ class MainMenu(object):
         self.options[name]["value"] = value
 
     def set_keyboard_bindings(self):
-        """Sets bindings depending on which screen is displayed. Either player
-        can control cursor.
-        """
+        """Sets bindings depending on which screen is displayed. Either player can control cursor. """
         turtle.listen()
         if self.get_curr_screen() == "main":
             turtle.onkeypress(self.cursor_up, "Up")
@@ -226,9 +224,7 @@ class MainMenu(object):
             self.state = self.QUIT
 
     def handle_enter_or_space_controls(self):
-        """Controls how enter or space function depending on the cursor position
-        for the controls screen.
-        """
+        """Controls how enter or space function depending on the cursor position for the controls screen. """
         if self.pen.cursor_pos == 1:
             self.set_option_value("relative_controls", True)
         else:
@@ -236,9 +232,7 @@ class MainMenu(object):
         self.pop_from_screen_stack()
 
     def handle_enter_or_space_options(self):
-        """Controls how enter or space function depending on the cursor position
-        for the options screen.
-        """
+        """Controls how enter or space function depending on the cursor position for the options screen. """
         if self.pen.cursor_pos == 1:
             relative_controls = self.get_option_value("relative_controls")
             self.pen.cursor_pos = 1 if relative_controls else 2
