@@ -54,13 +54,13 @@ class Player(turtle.Turtle):
         """Min. speed = 1, Max. speed = 3."""
         if self.fwd_speed < 3:
             self.fwd_speed += 1
-            self.forward(self.fwd_speed)  # Needs to be run only if speed changes
+            self.forward(self.fwd_speed)
 
     def decelerate(self):
         """Min. speed = 1, therefore player can never stop"""
         if self.fwd_speed > 1:
             self.fwd_speed -= 1
-            self.forward(self.fwd_speed)  # Needs to be run only if speed changes
+            self.forward(self.fwd_speed)
 
     def set_prev_coord(self):
         """Sets prev coordinates."""

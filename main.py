@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+from sound import Sound
+from game import Game
 import turtle
 import os
 import sys
-import game
 
 if os.name == "nt":
     import winsound
@@ -22,27 +23,12 @@ class MainMenu(object):
         self.screen = turtle.Screen()
         self.window_width, self.window_height = (1.0, 1.0)
         self.set_screen()
+        self.audio = Sound()
         self.screen_stack = ["main"]
         self.create_pens()
         self.display_main()
         self.cursor_positions = 4
-        self.options = {
-            "grid_size": {
-                "value": 2,
-                "min": 1,
-                "max": 3,
-                "labels": ["Small", "Medium", "Large"],
-            },
-            "relative_controls": {"value": False},
-            "humans": {"value": 1, "min": 1, "max": 2},
-            "bots": {"value": 1, "min": 0, "max": 3},
-            "difficulty": {
-                "value": 1,
-                "min": 1,
-                "max": 3,
-                "labels": ["Easy", "Normal", "Hard"],
-            },
-        }
+        self.options = self.init_options()
         self.option_pos_map = {4: "bots", 3: "difficulty", 2: "grid_size"}
         self.state = self.MENU
 
@@ -74,6 +60,25 @@ class MainMenu(object):
         self.text_pen.speed(0)
         self.text_pen.penup()
         self.text_pen.hideturtle()
+
+    def init_options(self):
+        return {
+            "grid_size": {
+                "value": 2,
+                "min": 1,
+                "max": 3,
+                "labels": ["Small", "Medium", "Large"],
+            },
+            "relative_controls": {"value": False},
+            "humans": {"value": 1, "min": 1, "max": 2},
+            "bots": {"value": 1, "min": 0, "max": 3},
+            "difficulty": {
+                "value": 1,
+                "min": 1,
+                "max": 3,
+                "labels": ["Easy", "Normal", "Hard"],
+            },
+        }
 
     def set_cursor_controller(self):
         """Runs in start menu loop. Controlled by cursor_up and cursor_down functions."""
@@ -200,11 +205,12 @@ class MainMenu(object):
 
     def handle_enter_or_space_controller(self):
         """Depending on the current screen, passes the action to its corresponding function."""
-        if self.get_curr_screen() == "main":
+        curr_screen = self.get_curr_screen()
+        if curr_screen == "main":
             self.handle_enter_or_space_main()
-        elif self.get_curr_screen() == "options":
+        elif curr_screen == "options":
             self.handle_enter_or_space_options()
-        elif self.get_curr_screen() == "controls":
+        elif curr_screen == "controls":
             self.handle_enter_or_space_controls()
 
     def handle_enter_or_space_main(self):
@@ -278,29 +284,29 @@ class MainMenu(object):
             y_offset -= 140
 
     def reset_menu(self):
-        self.stop_music()
+        self.audio.stop_music()
         self.set_screen()
         self.display_main()
         self.create_cursor()
-        self.start_music()
+        self.audio.start_music("main_menu")
 
-    def stop_music(self):
-        if os.name == "posix":
-            os.system("killall afplay")
-        elif os.name == "nt":
-            winsound.PlaySound(None, winsound.SND_PURGE)
+    # def stop_music(self):
+    #     if os.name == "posix":
+    #         os.system("killall afplay")
+    #     elif os.name == "nt":
+    #         winsound.PlaySound(None, winsound.SND_PURGE)
 
-    def start_music(self):
-        bgm_path = "sounds/main_menu.wav"
-        if os.name == "posix":
-            os.system(f"afplay {bgm_path}&")
-        elif os.name == "nt":
-            winsound.SND_ASYNC
-            winsound.PlaySound(bgm_path, winsound.SND_ASYNC)
+    # def start_music(self):
+    #     bgm_path = "sounds/main_menu.wav"
+    #     if os.name == "posix":
+    #         os.system(f"afplay {bgm_path}&")
+    #     elif os.name == "nt":
+    #         winsound.SND_ASYNC
+    #         winsound.PlaySound(bgm_path, winsound.SND_ASYNC)
 
     def start_menu(self):
         """Main menu loop."""
-        self.start_music()
+        self.audio.start_music("main_menu")
 
         # Change cursor position based on keybindings
         while self.state == self.MENU:
@@ -308,10 +314,10 @@ class MainMenu(object):
             self.set_keyboard_bindings()
             self.screen.update()
             while self.state == self.GAME:
-                self.stop_music()
+                self.audio.stop_music()
                 # Trim options dict to only contain name and value
                 options = {key: value["value"] for key, value in self.options.items()}
-                gameObj = game.Game(**options)
+                gameObj = Game(**options)
                 gameObj.start_game()
                 self.state = self.MENU
                 self.reset_menu()
@@ -320,7 +326,7 @@ class MainMenu(object):
             self.quit()
 
     def quit(self):
-        self.stop_music()
+        self.audio.stop_music()
         turtle.bye()
 
 

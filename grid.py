@@ -16,7 +16,7 @@ class Grid:
         return (x, y)
 
     def set_adjacent_coords_as_visited(self, player, x, y, amount):
-        """Sets adjecent coordinates in all directions to visited by certain amount."""
+        """Sets adjecent coordinates to visited by specified amount."""
         try:
             for num in range(1, amount + 1):
                 if player.heading() == 0 or player.heading() == 180:

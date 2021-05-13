@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import turtle
-import time
 import os
 import random
 
-# User created
-import particle
-import player
-import ai
-import grid
+# Dev assets
+from particle import Particle
+from player import Player
+from ai import Ai
+from grid import Grid
+from sound import Sound
 
 # For windows audio
 if os.name == "nt":
@@ -37,6 +37,7 @@ class Game(object):
         self.height = 600
         self.determine_grid_size()
         self.create_screen()
+        self.audio = Sound()
         self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
         self.x_boundary = (self.width // 2) - self.out_of_bounds_length
@@ -60,7 +61,7 @@ class Game(object):
     def create_grid(self):
         width = self.x_boundary * 2
         height = self.y_boundary * 2
-        return grid.Grid(width, height)
+        return Grid(width, height)
 
     def create_screen(self):
         """Maximizes screen based on monitor size."""
@@ -133,18 +134,18 @@ class Game(object):
 
         for i in range(self.humans):
             x, y = self.get_random_coord()
-            self.players.append(player.Player("P" + str(i + 1), x, y, colors.pop()))
+            self.players.append(Player("P" + str(i + 1), x, y, colors.pop()))
 
         for i in range(self.bots):
             x, y = self.get_random_coord()
             self.players.append(
-                ai.Ai("COM" + str(i + 1), x, y, colors.pop(), self.difficulty)
+                Ai("COM" + str(i + 1), x, y, colors.pop(), self.difficulty)
             )
 
     def create_particles(self):
         """Populates particles list. All particles act in same manner."""
         for _ in range(20):
-            self.particles.append(particle.Particle())
+            self.particles.append(Particle())
 
     def particles_explode(self, player):
         """Makes all particles explode at player crash position"""
@@ -249,15 +250,6 @@ class Game(object):
                     player.set_speed(6)
         self.grid = self.create_grid()
 
-    def start_bgm(self):
-        bgm = "sounds/gameplay.wav"
-        if os.name == "posix":
-            os.system("killall afplay")
-            os.system(f"afplay {bgm}&")
-            os.system("say grid is live!&")
-        elif os.name == "nt":
-            winsound.PlaySound(bgm, winsound.SND_ASYNC)
-
     def countdown(self, num):
         self.game_text_pen.pendown()
         self.game_text_pen.write(str(num), align="center", font=Game.GAME_FONT)
@@ -288,28 +280,23 @@ class Game(object):
         self.draw_score()
         for num in range(3, 0, -1):
             turtle.ontimer(self.countdown(num), 1000)
-        self.start_bgm()
+        self.audio.start_music("gameplay", True)
 
     def end_game(self):
         """Game over cleanup."""
         self.game_on = False
         turtle.ontimer(self.display_winner(), 3000)
         self.screen.clear()
-        self.stop_music()
+        self.audio.stop_music()
 
-    def stop_music(self):
-        if os.name == "posix":
-            os.system("killall afplay")
-        elif os.name == "nt":
-            winsound.PlaySound(None, winsound.SND_PURGE)
-
-    def play_sfx(self, sound):
-        if os.name == "posix":
-            os.system(f"afplay {sound}&")
-        elif os.name == "nt":
-            # winsound.PlaySound(sound, winsound.SND_ASYNC)
-            # can't play simoutaneous sounds
-            pass
+    def set_crash_sequence(self, player):
+        player.lose_life()
+        self.particles_explode(player)
+        self.audio.play_sfx("explosion")
+        self.draw_score()
+        if self.is_game_over():
+            self.end_game()
+        self.reset_grid()
 
     def analyze_positions(self, player, positions):
         """Check for collision. If no collision, set pos to visited."""
@@ -346,13 +333,7 @@ class Game(object):
             # If a player crashes, particles explode and reset lightcycles
             for player in self.players:
                 if player.status == player.CRASHED:
-                    player.lose_life()
-                    self.particles_explode(player)
-                    self.play_sfx("sounds/explosion.wav")
-                    self.draw_score()
-                    if self.is_game_over():
-                        self.end_game()
-                    self.reset_grid()
+                    self.set_crash_sequence(player)
             # Updates screen only when loop is complete
             self.screen.update()
 
