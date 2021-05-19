@@ -290,20 +290,6 @@ class MainMenu(object):
         self.create_cursor()
         self.audio.start_music("main_menu")
 
-    # def stop_music(self):
-    #     if os.name == "posix":
-    #         os.system("killall afplay")
-    #     elif os.name == "nt":
-    #         winsound.PlaySound(None, winsound.SND_PURGE)
-
-    # def start_music(self):
-    #     bgm_path = "sounds/main_menu.wav"
-    #     if os.name == "posix":
-    #         os.system(f"afplay {bgm_path}&")
-    #     elif os.name == "nt":
-    #         winsound.SND_ASYNC
-    #         winsound.PlaySound(bgm_path, winsound.SND_ASYNC)
-
     def start_menu(self):
         """Main menu loop."""
         self.audio.start_music("main_menu")

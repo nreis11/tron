@@ -1,5 +1,6 @@
 import turtle
 import random
+import constants
 
 
 class Player(turtle.Turtle):
@@ -27,28 +28,26 @@ class Player(turtle.Turtle):
         self.pendown()
 
     def turn_left(self):
-        """90 Degree left turn."""
         self.left(90)
 
     def turn_right(self):
-        """90 Degree right turn."""
         self.right(90)
 
     def go_east(self):
-        if self.heading != 180:
-            self.setheading(0)
+        if self.heading != constants.WEST:
+            self.setheading(constants.EAST)
 
     def go_north(self):
-        if self.heading != 270:
-            self.setheading(90)
+        if self.heading != constants.SOUTH:
+            self.setheading(constants.NORTH)
 
     def go_west(self):
-        if self.heading != 0:
-            self.setheading(180)
+        if self.heading != constants.EAST:
+            self.setheading(constants.WEST)
 
     def go_south(self):
-        if self.heading != 90:
-            self.setheading(270)
+        if self.heading != constants.NORTH:
+            self.setheading(constants.SOUTH)
 
     def accelerate(self):
         """Min. speed = 1, Max. speed = 3."""

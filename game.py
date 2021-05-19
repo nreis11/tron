@@ -3,6 +3,7 @@
 import turtle
 import os
 import random
+import constants
 
 # Dev assets
 from particle import Particle
@@ -113,18 +114,18 @@ class Game(object):
         if prev_xcor == curr_xcor and prev_ycor == curr_ycor:
             return positions
 
-        if player.heading() == 0:
+        if player.heading() == constants.EAST:
             positions = get_missing_positions(prev_xcor, curr_xcor, 1)
-        elif player.heading() == 90:
+        elif player.heading() == constants.NORTH:
             positions = get_missing_positions(prev_ycor, curr_ycor, 1)
-        elif player.heading() == 180:
+        elif player.heading() == constants.WEST:
             positions = get_missing_positions(prev_xcor, curr_xcor, -1)
-        elif player.heading() == 270:
+        elif player.heading() == constants.SOUTH:
             positions = get_missing_positions(prev_ycor, curr_ycor, -1)
         # Translate to grid coordinates
-        if player.heading() == 0 or player.heading() == 180:
+        if player.heading() == constants.EAST or player.heading() == constants.WEST:
             positions = [self.grid.get_grid_coord(x, prev_ycor) for x in positions]
-        elif player.heading() == 90 or player.heading() == 270:
+        elif player.heading() == constants.NORTH or player.heading() == constants.SOUTH:
             positions = [self.grid.get_grid_coord(prev_xcor, y) for y in positions]
         return positions
 
@@ -174,23 +175,23 @@ class Game(object):
 
         # Set P1 keyboard bindings
         if self.humans >= 1:
-            if self.players[0].heading() == 0:  # East
+            if self.players[0].heading() == constants.EAST:
                 self.abs_key_mapper(self.players[0], "w", "s", "d", "a")
-            elif self.players[0].heading() == 90:  # North
+            elif self.players[0].heading() == constants.NORTH:
                 self.abs_key_mapper(self.players[0], "a", "d", "w", "s")
-            elif self.players[0].heading() == 180:  # West
+            elif self.players[0].heading() == constants.WEST:
                 self.abs_key_mapper(self.players[0], "s", "w", "a", "d")
-            elif self.players[0].heading() == 270:  # South
+            elif self.players[0].heading() == constants.SOUTH:
                 self.abs_key_mapper(self.players[0], "d", "a", "s", "w")
         # Set P2 keyboard bindings
         if self.humans >= 2:
-            if self.players[1].heading() == 0:  # East
+            if self.players[1].heading() == constants.EAST:
                 self.abs_key_mapper(self.players[1], "Up", "Down", "Right", "Left")
-            elif self.players[1].heading() == 90:  # North
+            elif self.players[1].heading() == constants.NORTH:
                 self.abs_key_mapper(self.players[1], "Left", "Right", "Up", "Down")
-            elif self.players[1].heading() == 180:  # West
+            elif self.players[1].heading() == constants.WEST:
                 self.abs_key_mapper(self.players[1], "Down", "Up", "Left", "Right")
-            elif self.players[1].heading() == 270:  # South
+            elif self.players[1].heading() == constants.SOUTH:
                 self.abs_key_mapper(self.players[1], "Right", "Left", "Down", "Up")
 
     def abs_key_mapper(self, player, left, right, accel, decel):
@@ -221,7 +222,7 @@ class Game(object):
 
     def is_game_over(self):
         """Checks to see if there's only one player left."""
-        return len(list(filter(lambda player: player.lives > 0, self.players))) == 1
+        return len([player for player in self.players if player.has_lives()]) == 1
 
     def display_winner(self):
         """Once game loop finishes, this runs to display the winner."""
@@ -246,8 +247,7 @@ class Game(object):
         # Speed up game if no humans are alive
         if self.humans == 0:
             for player in alive_players:
-                if player.is_ai:
-                    player.set_speed(6)
+                player.set_speed(6)
         self.grid = self.create_grid()
 
     def countdown(self, num):
@@ -296,7 +296,8 @@ class Game(object):
         self.draw_score()
         if self.is_game_over():
             self.end_game()
-        self.reset_grid()
+        else:
+            self.reset_grid()
 
     def analyze_positions(self, player, positions):
         """Check for collision. If no collision, set pos to visited."""
@@ -339,5 +340,5 @@ class Game(object):
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=3, bots=4, humans=0, grid_size=3)
+    gameObj = Game(testing=False, difficulty=3, bots=2, humans=0, grid_size=2)
     gameObj.start_game()

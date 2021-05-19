@@ -16,7 +16,7 @@ alt="IMAGE gameplay" width="1024" height="649" border="0" /></a>
 
 ## Synopsis
 
-This game is a homage to the 1982 cult classic, Tron. It recreates the light cycle battles that are played out during the movie.
+This game is a homage to the 1982 cult classic, Tron. It recreates the light cycle battles that play out during the movie.
 The object of the game is to stay alive the longest by not crashing into the walls, the opponent's trail, or your own trail.
 
 - 1-2 players
@@ -41,7 +41,7 @@ $ python3 main.py
 
 ## Known issues
 
-- Windows sound support is limited
+- Windows sound support is limited (due to winsound limitations)
 
 ## License
 

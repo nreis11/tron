@@ -1,5 +1,6 @@
 import player
 import random
+import constants
 
 
 class Ai(player.Player):
@@ -9,14 +10,14 @@ class Ai(player.Player):
         self.set_speed()
         self.frame = 0
         self.frame_delay = 30 // difficulty
-        self.min_distance_collision = 100 // self.difficulty
+        self.min_collision_distance = 100 // self.difficulty
         self.is_ai = True
 
     def run_ai_logic(self, grid):
         """Make decisions based on nearby collision. Frame delay equates to reflexes."""
         self.increment_frames()
         if self.frame >= self.frame_delay and self.is_near_collision(grid):
-            self.make_smart_turn(grid)
+            self.determine_turn(grid)()
             # self.randomize_min_distance_collision()
             self.reset_frames()
 
@@ -30,42 +31,47 @@ class Ai(player.Player):
         """Set speed based on difficulty (1-3) or speed arg if provided."""
         self.fwd_speed = speed or self.difficulty
 
-    def randomize_min_distance_collision(self):
-        self.min_distance_collision = 100 // self.difficulty + random.choice(
+    def randomize_min_collision_distance(self):
+        self.min_collision_distance = 100 // self.difficulty + random.choice(
             [num for num in range(-20, 20, 10)]
         )
 
-    def make_smart_turn(self, grid):
+    def determine_turn(self, grid):
         """Get flanking distances to collision. Whichever direction has the longest distance to a collision, turn that direction."""
         x, y = grid.get_grid_coord(self.xcor(), self.ycor())
         i = 1
         while True:
-            if self.heading() == 0 or self.heading() == 180:
+            if self.heading() == constants.EAST or self.heading() == constants.WEST:
                 if self.is_collision(grid, x, y + i):
-                    self.go_south()
-                    return
+                    return self.go_south
                 elif self.is_collision(grid, x, y - i):
-                    self.go_north()
-                    return
-            elif self.heading() == 90 or self.heading() == 270:
+                    return self.go_north
+            elif self.heading() == constants.NORTH or self.heading() == constants.SOUTH:
                 if self.is_collision(grid, x - i, y):
-                    self.go_east()
-                    return
+                    return self.go_east
                 elif self.is_collision(grid, x + i, y):
-                    self.go_west()
-                    return
+                    return self.go_west
             i += 1
 
     def is_near_collision(self, grid):
         """Checks for nearby collision in the direction of the player."""
         i = 1
         x, y = grid.get_grid_coord(self.xcor(), self.ycor())
-        while i <= self.min_distance_collision:
+        while i <= self.min_collision_distance:
             if (
-                (self.heading() == 0 and self.is_collision(grid, x + i, y))
-                or (self.heading() == 180 and self.is_collision(grid, x - i, y))
-                or (self.heading() == 90 and self.is_collision(grid, x, y + i))
-                or (self.heading() == 270 and self.is_collision(grid, x, y - i))
+                (self.heading() == constants.EAST and self.is_collision(grid, x + i, y))
+                or (
+                    self.heading() == constants.WEST
+                    and self.is_collision(grid, x - i, y)
+                )
+                or (
+                    self.heading() == constants.NORTH
+                    and self.is_collision(grid, x, y + i)
+                )
+                or (
+                    self.heading() == constants.SOUTH
+                    and self.is_collision(grid, x, y - i)
+                )
             ):
                 return True
             i += 1
