@@ -18,8 +18,7 @@ if os.name == "nt":
 
 
 class Game(object):
-    """Creates screen, draws border, creates all sprites, maps keys, draws score, and
-    runs game loop."""
+    """Creates screen, draws border, creates all sprites, maps keys, draws score, and runs game loop."""
 
     GAME_FONT = ("Phosphate", 42, "bold")
 
@@ -32,7 +31,6 @@ class Game(object):
         testing=False,
         difficulty=1,
     ):
-        turtle.setundobuffer(None)
         self.grid_size = grid_size
         self.width = 800
         self.height = 600
@@ -92,7 +90,6 @@ class Game(object):
                 self.border_pen.forward(2)  # Extra added to match visually
                 self.border_pen.left(90)
         self.border_pen.penup()
-        self.border_pen.hideturtle()
 
     def get_random_coord(self):
         """Generates random coordinate within playable area with 100 px padding from boundary"""
@@ -266,6 +263,7 @@ class Game(object):
         self.border_pen.speed(0)
         self.border_pen.pensize(2)
         self.border_pen.color("blue")
+        self.border_pen.hideturtle()
         self.game_text_pen.hideturtle()
         self.score_pen.penup()
         self.score_pen.hideturtle()
@@ -280,6 +278,8 @@ class Game(object):
         self.draw_score()
         for num in range(3, 0, -1):
             turtle.ontimer(self.countdown(num), 1000)
+        for t in turtle.turtles():
+            t.setundobuffer(None)
         self.audio.start_music("gameplay", True)
 
     def end_game(self):
