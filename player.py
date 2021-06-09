@@ -96,7 +96,7 @@ class Player(turtle.Turtle):
         self.status = self.READY
         self.setposition(x, y)
         self.setheading(random.randrange(0, 360, 90))
-        self.prev_pos = (x, y)
+        self.set_prev_coord()
         self.fwd_speed = 1
         self.showturtle()
         self.pendown()

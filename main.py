@@ -90,14 +90,14 @@ class MainMenu(object):
             self.set_cursor_controls()
 
     def set_cursor_main(self):
-        """Main: 1P Start = 4, 2P Start = 3, Controls = 2, Quit = 1"""
+        """Main: 1P Start = 4, 2P Start = 3, Options = 2, Quit = 1"""
         self.cursor_positions = 4
         if self.pen.cursor_pos == 4:
-            self.pen.setposition(-130, 95)
+            self.pen.setposition(-130, 92)
         elif self.pen.cursor_pos == 3:
             self.pen.setposition(-130, 35)
         elif self.pen.cursor_pos == 2:
-            self.pen.setposition(-130, -75)
+            self.pen.setposition(-130, -78)
         else:
             self.pen.setposition(-130, -190)
 

@@ -6,10 +6,11 @@ import random
 import constants
 
 # Dev assets
-from particle import Particle
-from player import Player
 from ai import Ai
 from grid import Grid
+from particle import Particle
+from pen import Pen
+from player import Player
 from sound import Sound
 
 # For windows audio
@@ -19,8 +20,6 @@ if os.name == "nt":
 
 class Game(object):
     """Creates screen, draws border, creates all sprites, maps keys, draws score, and runs game loop."""
-
-    GAME_FONT = ("Phosphate", 42, "bold")
 
     def __init__(
         self,
@@ -74,10 +73,9 @@ class Game(object):
         """Border is drawn from the width and height, starting in upper
         right hand corner. Each side is 50 pixels from the edge of the screen.
         The border coordinates will be used for border detection as well."""
-        self.border_pen.penup()
         self.border_pen.setposition(self.x_boundary, self.y_boundary)
         self.border_pen.pendown()
-        self.border_pen.setheading(180)  # Start drawing west
+        self.border_pen.setheading(constants.WEST)
         for side in range(4):
             # Vertical
             if side % 2:
@@ -199,10 +197,8 @@ class Game(object):
         turtle.onkeypress(player.decelerate, decel)
 
     def draw_score(self):
-        """This draws the score on the screen once, then clears once
-        the score changes. Start position is upper left corner. A dedicated score
-        pen is needed because the clear function is called every time the score
-        is updated."""
+        """This draws the score on the screen once, then clears once the score changes. Start position is upper left corner.
+        A dedicated score pen is needed because the clear function is called every time the score is updated."""
         self.score_pen.clear()
         x_offset = 75
         for player in self.players:
@@ -225,7 +221,9 @@ class Game(object):
         """Once game loop finishes, this runs to display the winner."""
         self.game_text_pen.pendown()
         winner = [player.name for player in self.players if player.has_lives()][0]
-        self.game_text_pen.write(f"{winner} wins!", align="center", font=Game.GAME_FONT)
+        self.game_text_pen.write(
+            f"{winner} wins!", align="center", font=self.game_text_pen.font
+        )
 
     def reset_grid(self):
         alive_players = [
@@ -249,26 +247,16 @@ class Game(object):
 
     def countdown(self, num):
         self.game_text_pen.pendown()
-        self.game_text_pen.write(str(num), align="center", font=Game.GAME_FONT)
+        self.game_text_pen.write(str(num), align="center", font=self.game_text_pen.font)
         if os.name == "posix":
             os.system(f"say {num}&")
         self.game_text_pen.clear()
 
     def create_pens(self):
         """Initialize all pens."""
-        self.border_pen = turtle.Turtle()
-        self.score_pen = turtle.Turtle()
-        self.game_text_pen = turtle.Turtle()
-
-        self.border_pen.speed(0)
-        self.border_pen.pensize(2)
-        self.border_pen.color("blue")
-        self.border_pen.hideturtle()
-        self.game_text_pen.hideturtle()
-        self.score_pen.penup()
-        self.score_pen.hideturtle()
-        self.score_pen.color("white")
-        self.game_text_pen.color("white")
+        self.border_pen = Pen("blue", 2)
+        self.score_pen = Pen()
+        self.game_text_pen = Pen()
 
     def create_assets(self):
         self.create_pens()
@@ -280,7 +268,6 @@ class Game(object):
             turtle.ontimer(self.countdown(num), 1000)
         for t in turtle.turtles():
             t.setundobuffer(None)
-        self.audio.start_music("gameplay", True)
 
     def end_game(self):
         """Game over cleanup."""
@@ -294,10 +281,6 @@ class Game(object):
         self.particles_explode(player)
         self.audio.play_sfx("explosion")
         self.draw_score()
-        if self.is_game_over():
-            self.end_game()
-        else:
-            self.reset_grid()
 
     def analyze_positions(self, player, positions):
         """Check for collision. If no collision, set pos to visited."""
@@ -312,6 +295,7 @@ class Game(object):
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
         run continuously until a player runs out of lives."""
+        self.audio.start_music("gameplay", True)
 
         while self.game_on:
             # Set controls based on menu setting
@@ -335,10 +319,14 @@ class Game(object):
             for player in self.players:
                 if player.status == player.CRASHED:
                     self.set_crash_sequence(player)
+                    if self.is_game_over():
+                        self.end_game()
+                    else:
+                        self.reset_grid()
             # Updates screen only when loop is complete
             self.screen.update()
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=3, bots=2, humans=0, grid_size=2)
+    gameObj = Game(testing=False, difficulty=2, bots=2, humans=0, grid_size=2)
     gameObj.start_game()
