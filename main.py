@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
-from sound import Sound
 from game import Game
+from pen import Pen
+from sound import Sound
+from screen import Screen
+from option_screen import OptionsScreen
 import turtle
 import os
 import sys
@@ -9,203 +12,117 @@ import sys
 if os.name == "nt":
     import winsound
 
+main_screen = Screen("main")
+options_screen = OptionsScreen("options")
+controls_screen = Screen("controls")
 
-class MainMenu(object):
+
+class MainMenu:
     """Main menu creates a window to allow you to view the controls, edit options, start the game, and quit the game."""
 
     MENU = "MENU"
     GAME = "GAME"
     QUIT = "QUIT"
 
-    def __init__(self):
+    def __init__(self, testing=False):
         turtle.setundobuffer(None)
         turtle.tracer(0)
-        self.screen = turtle.Screen()
+        self.testing = testing
         self.window_width, self.window_height = (1.0, 1.0)
-        self.set_screen()
+        self.screen_idx = 0
+        self.screens = [main_screen, options_screen, controls_screen]
+        self.screen = turtle.Screen()
+        self.init_screen()
         self.audio = Sound()
-        self.screen_stack = ["main"]
-        self.create_pens()
-        self.display_main()
-        self.cursor_positions = 4
-        self.options = self.init_options()
-        self.option_pos_map = {4: "bots", 3: "difficulty", 2: "grid_size"}
+        self.create_cursor()
+        self.display_controller()
+        self.humans = 1
         self.state = self.MENU
 
-    def set_screen(self):
+    def init_screen(self):
         """Create maximized main menu screen."""
+        bg = self.get_curr_screen().bg
         self.screen.bgcolor("black")
-        self.screen.bgpic("images/main_menu.gif")
+        self.screen.bgpic(bg)
         self.screen.setup(self.window_width, self.window_height)
         self.screen.title("TURTLETRON")
         self.screen.tracer(0)
 
-    def create_pens(self):
-        """Create selection cursor and text pen for option values."""
-        self.create_cursor()
-        self.create_text_pen()
-
     def create_cursor(self):
-        self.pen = turtle.Turtle()
-        self.pen.shape("square")
-        self.pen.shapesize(stretch_wid=0.4, stretch_len=1.1)
-        self.pen.cursor_pos = 4
-        self.pen.pencolor("#40BBE3")
-        self.pen.penup()
-        self.pen.showturtle()
+        self.cursor = turtle.Turtle()
+        self.cursor.shape("square")
+        self.cursor.shapesize(stretch_wid=0.4, stretch_len=1.1)
+        self.cursor.pencolor("#40BBE3")
+        self.cursor.penup()
+        self.cursor.showturtle()
 
-    def create_text_pen(self):
-        self.text_pen = turtle.Turtle()
-        self.text_pen.color("white")
-        self.text_pen.speed(0)
-        self.text_pen.penup()
-        self.text_pen.hideturtle()
-
-    def init_options(self):
-        return {
-            "grid_size": {
-                "value": 2,
-                "min": 1,
-                "max": 3,
-                "labels": ["Small", "Medium", "Large"],
-            },
-            "relative_controls": {"value": False},
-            "humans": {"value": 1, "min": 1, "max": 2},
-            "bots": {"value": 1, "min": 0, "max": 3},
-            "difficulty": {
-                "value": 1,
-                "min": 1,
-                "max": 3,
-                "labels": ["Easy", "Normal", "Hard"],
-            },
-        }
+    def get_options_screen(self):
+        return self.screens[1]
 
     def set_cursor_controller(self):
-        """Runs in start menu loop. Controlled by cursor_up and cursor_down functions."""
-        if self.get_curr_screen() == "main":
-            self.set_cursor_main()
-        elif self.get_curr_screen() == "options":
-            self.set_cursor_options()
-        elif self.get_curr_screen() == "controls":
-            self.set_cursor_controls()
-
-    def set_cursor_main(self):
-        """Main: 1P Start = 4, 2P Start = 3, Options = 2, Quit = 1"""
-        self.cursor_positions = 4
-        if self.pen.cursor_pos == 4:
-            self.pen.setposition(-130, 92)
-        elif self.pen.cursor_pos == 3:
-            self.pen.setposition(-130, 35)
-        elif self.pen.cursor_pos == 2:
-            self.pen.setposition(-130, -78)
-        else:
-            self.pen.setposition(-130, -190)
-
-    def set_cursor_controls(self):
-        """Controls: Relative = 1, Absolute = 2."""
-        self.cursor_positions = 2
-        if self.pen.cursor_pos == 1:
-            self.pen.setposition(-460, -315)
-        else:
-            self.pen.setposition(230, -315)
-        self.display_controls()
-
-    def set_cursor_options(self):
-        self.cursor_positions = 4
-        if self.pen.cursor_pos == 4:
-            self.pen.setposition(-510, 195)
-        elif self.pen.cursor_pos == 3:
-            self.pen.setposition(-510, 63)
-        elif self.pen.cursor_pos == 2:
-            self.pen.setposition(-510, -67)
-        elif self.pen.cursor_pos == 1:
-            self.pen.setposition(-510, -200)
-
-    def cursor_up(self):
-        """Increase cursor pos by 1."""
-        if self.pen.cursor_pos < self.cursor_positions:
-            self.pen.cursor_pos += 1
-
-    def cursor_down(self):
-        """Decrease cursor pos by 1."""
-        if self.pen.cursor_pos > 1:
-            self.pen.cursor_pos -= 1
-
-    def increment_value(self):
-        """Increases value for option according to cursor position."""
-        if self.pen.cursor_pos in self.option_pos_map:
-            name = self.option_pos_map[self.pen.cursor_pos]
-            max_value = self.options[name]["max"]
-            if self.get_option_value(name) < max_value:
-                self.options[name]["value"] += 1
-                self.draw_option_values()
-
-    def decrement_value(self):
-        """Decreases value for option according to cursor position."""
-        if self.pen.cursor_pos in self.option_pos_map:
-            name = self.option_pos_map[self.pen.cursor_pos]
-            min_value = self.options[name]["min"]
-            if self.get_option_value(name) > min_value:
-                self.options[name]["value"] -= 1
-                self.draw_option_values()
-
-    def get_option_value(self, name):
-        return self.options[name]["value"]
-
-    def set_option_value(self, name, value):
-        self.options[name]["value"] = value
+        """Runs in start menu loop."""
+        curr_screen = self.get_curr_screen()
+        cursor_pos = curr_screen.get_cursor_pos()
+        self.cursor.setpos(cursor_pos)
 
     def set_keyboard_bindings(self):
         """Sets bindings depending on which screen is displayed. Either player can control cursor. """
         turtle.listen()
-        if self.get_curr_screen() == "main":
-            turtle.onkeypress(self.cursor_up, "Up")
-            turtle.onkeypress(self.cursor_up, "w")
-            turtle.onkeypress(self.cursor_down, "Down")
-            turtle.onkeypress(self.cursor_down, "s")
+        curr_screen = self.get_curr_screen()
+        if curr_screen.name == "main":
+            turtle.onkeypress(curr_screen.cursor_up, "Up")
+            turtle.onkeypress(curr_screen.cursor_up, "w")
+            turtle.onkeypress(curr_screen.cursor_down, "Down")
+            turtle.onkeypress(curr_screen.cursor_down, "s")
             turtle.onkeypress(None, "a")
             turtle.onkeypress(None, "d")
             turtle.onkeypress(None, "Left")
             turtle.onkeypress(None, "Right")
-        elif self.get_curr_screen() == "controls":
-            turtle.onkeypress(self.cursor_up, "Right")
-            turtle.onkeypress(self.cursor_up, "d")
-            turtle.onkeypress(self.cursor_down, "Left")
-            turtle.onkeypress(self.cursor_down, "a")
-        elif self.get_curr_screen() == "options":
-            turtle.onkeypress(self.cursor_up, "Up")
-            turtle.onkeypress(self.cursor_up, "w")
-            turtle.onkeypress(self.cursor_down, "Down")
-            turtle.onkeypress(self.cursor_down, "s")
-            turtle.onkeypress(self.decrement_value, "a")
-            turtle.onkeypress(self.increment_value, "d")
-            turtle.onkeypress(self.decrement_value, "Left")
-            turtle.onkeypress(self.increment_value, "Right")
+        elif curr_screen.name == "controls":
+            turtle.onkeypress(curr_screen.cursor_up, "Right")
+            turtle.onkeypress(curr_screen.cursor_up, "d")
+            turtle.onkeypress(curr_screen.cursor_down, "Left")
+            turtle.onkeypress(curr_screen.cursor_down, "a")
+        elif curr_screen.name == "options":
+            turtle.onkeypress(curr_screen.cursor_up, "Up")
+            turtle.onkeypress(curr_screen.cursor_up, "w")
+            turtle.onkeypress(curr_screen.cursor_down, "Down")
+            turtle.onkeypress(curr_screen.cursor_down, "s")
+            turtle.onkeypress(curr_screen.decrement_value, "a")
+            turtle.onkeypress(curr_screen.increment_value, "d")
+            turtle.onkeypress(curr_screen.decrement_value, "Left")
+            turtle.onkeypress(curr_screen.increment_value, "Right")
 
         # Apply special function to return or space
         turtle.onkeypress(self.handle_enter_or_space_controller, "Return")
         turtle.onkeypress(self.handle_enter_or_space_controller, "space")
-        turtle.onkeypress(self.pop_from_screen_stack, "Escape")
+        turtle.onkeypress(self.prev_screen, "Escape")
 
-    def pop_from_screen_stack(self):
-        if len(self.screen_stack) > 1:
-            self.screen_stack.pop()
+    def next_screen(self):
+        self.screen_idx += 1
+        self.display_controller()
+
+    def prev_screen(self):
+
+        if hasattr(self.get_curr_screen(), "text_pen"):
+            self.get_curr_screen().text_pen.clear()
+
+        if self.screen_idx > 0:
+            self.screen_idx -= 1
             self.display_controller()
 
     def get_curr_screen(self):
-        return self.screen_stack[-1]
+        return self.screens[self.screen_idx]
 
     def display_controller(self):
-        if self.get_curr_screen() == "main":
-            self.display_main()
-        elif self.get_curr_screen() == "options":
-            self.display_options()
-        elif self.get_curr_screen() == "controls":
-            self.display_controls()
+        curr_screen = self.get_curr_screen()
+        self.screen.bgpic(curr_screen.bg)
+        if curr_screen.name == "options":
+            curr_screen.draw_option_values()
 
     def handle_enter_or_space_controller(self):
         """Depending on the current screen, passes the action to its corresponding function."""
-        curr_screen = self.get_curr_screen()
+        curr_screen = self.get_curr_screen().name
         if curr_screen == "main":
             self.handle_enter_or_space_main()
         elif curr_screen == "options":
@@ -215,84 +132,41 @@ class MainMenu(object):
 
     def handle_enter_or_space_main(self):
         """Controls how enter or space function depending on the cursor position for the main screen."""
-        if self.pen.cursor_pos == 4:
-            self.set_option_value("humans", 1)
+        cursor_idx = self.get_curr_screen().curr_cursor_idx
+        if cursor_idx == 4:
             self.screen.clear()
             self.state = self.GAME
-        elif self.pen.cursor_pos == 3:
-            self.set_option_value("humans", 2)
+        elif cursor_idx == 3:
+            self.humans = 2
             self.screen.clear()
             self.state = self.GAME
-        elif self.pen.cursor_pos == 2:
-            self.screen_stack.append("options")
-            self.display_options()
-        elif self.pen.cursor_pos == 1:
+        elif cursor_idx == 2:
+            self.next_screen()
+        elif cursor_idx == 1:
             self.state = self.QUIT
 
     def handle_enter_or_space_controls(self):
         """Controls how enter or space function depending on the cursor position for the controls screen. """
-        if self.pen.cursor_pos == 1:
-            self.set_option_value("relative_controls", True)
-        else:
-            self.set_option_value("relative_controls", False)
-        self.pop_from_screen_stack()
+        self.prev_screen()
 
     def handle_enter_or_space_options(self):
         """Controls how enter or space function depending on the cursor position for the options screen. """
-        if self.pen.cursor_pos == 1:
-            relative_controls = self.get_option_value("relative_controls")
-            self.pen.cursor_pos = 1 if relative_controls else 2
-            self.screen_stack.append("controls")
-            self.display_controls()
-            self.text_pen.clear()
-
-    def display_controls(self):
-        """Displays control screen. User can choose between relative or absolute control scheme."""
-        img_name = "controls_absolute"
-        if self.pen.cursor_pos == 1:
-            img_name = "controls_relative"
-        self.screen.bgpic(f"images/{img_name}.gif")
-
-    def display_main(self):
-        """Displays the main menu."""
-        self.text_pen.clear()
-        self.screen.bgpic("images/main_menu.gif")
-
-    def display_options(self):
-        """Display game options. Option values are controlled by self.text_pen."""
-        self.pen.cursor_pos = 4
-        self.screen.bgpic("images/options.gif")
-        self.draw_option_values()
-
-    def draw_option_values(self):
-        self.text_pen.clear()
-        y_offset = 180
-        options = [
-            self.options["bots"],
-            self.options["difficulty"],
-            self.options["grid_size"],
-        ]
-        for option in options:
-            self.text_pen.setposition(300, y_offset)
-            self.text_pen.pendown()
-            value = option["value"]
-            if "labels" in option:
-                idx = option["value"] - 1
-                value = option["labels"][idx]
-            self.text_pen.write(value, align="center", font=("Phosphate", 42, "bold"))
-            self.text_pen.penup()
-            y_offset -= 140
+        curr_screen = self.get_curr_screen()
+        if curr_screen.curr_cursor_idx == 1:
+            curr_screen.text_pen.clear()
+            self.next_screen()
 
     def reset_menu(self):
         self.audio.stop_music()
-        self.set_screen()
-        self.display_main()
+        self.init_screen()
+        self.display_controller()
         self.create_cursor()
         self.audio.start_music("main_menu")
 
     def start_menu(self):
         """Main menu loop."""
-        self.audio.start_music("main_menu")
+        if not self.testing:
+            self.audio.start_music("main_menu")
 
         # Change cursor position based on keybindings
         while self.state == self.MENU:
@@ -302,8 +176,11 @@ class MainMenu(object):
             while self.state == self.GAME:
                 self.audio.stop_music()
                 # Trim options dict to only contain name and value
-                options = {key: value["value"] for key, value in self.options.items()}
-                gameObj = Game(**options)
+                options = {
+                    key: value["value"]
+                    for key, value in self.get_options_screen().options.items()
+                }
+                gameObj = Game(**options, humans=self.humans, testing=self.testing)
                 gameObj.start_game()
                 self.state = self.MENU
                 self.reset_menu()
@@ -319,5 +196,5 @@ class MainMenu(object):
 if __name__ == "__main__":
     if sys.version_info[0] < 3:
         raise SystemExit("Python 3 required!")
-    menu = MainMenu()
+    menu = MainMenu(True)
     menu.start_menu()

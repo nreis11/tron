@@ -242,7 +242,8 @@ class Game(object):
         # Speed up game if no humans are alive
         if self.humans == 0:
             for player in alive_players:
-                player.set_speed(6)
+                if player.is_ai:
+                    player.set_speed(6)
         self.grid = self.create_grid()
 
     def countdown(self, num):
@@ -295,7 +296,8 @@ class Game(object):
     def start_game(self):
         """All players are set into motion, boundary checks, and collision checks
         run continuously until a player runs out of lives."""
-        self.audio.start_music("gameplay", True)
+        if not self.testing:
+            self.audio.start_music("gameplay", True)
 
         while self.game_on:
             # Set controls based on menu setting
