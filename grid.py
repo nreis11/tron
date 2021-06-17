@@ -1,3 +1,6 @@
+import constants
+
+
 class Grid:
     def __init__(self, width, height):
         self.width = width
@@ -19,10 +22,16 @@ class Grid:
         """Sets adjecent coordinates to visited by specified amount."""
         try:
             for num in range(1, amount + 1):
-                if player.heading() == 0 or player.heading() == 180:
+                if (
+                    player.heading() == constants.EAST
+                    or player.heading() == constants.WEST
+                ):
                     self.set_pos_to_visited(x, y - num)
                     self.set_pos_to_visited(x, y + num)
-                elif player.heading() == 90 or player.heading() == 270:
+                elif (
+                    player.heading() == constants.NORTH
+                    or player.heading() == constants.SOUTH
+                ):
                     self.set_pos_to_visited(x + num, y)
                     self.set_pos_to_visited(x - num, y)
         except IndexError:

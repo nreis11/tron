@@ -1,4 +1,5 @@
 from constants import SCREENS
+from sound import Sound
 
 
 class Screen:
@@ -8,6 +9,7 @@ class Screen:
         self.cursor_positions = SCREENS[name]["cursor_positions"]
         self.num_cursor_positions = len(self.cursor_positions)
         self.bg = SCREENS[name]["path"]
+        self.audio = Sound()
 
     def get_cursor_pos(self):
         if self.curr_cursor_idx in self.cursor_positions:
@@ -16,9 +18,11 @@ class Screen:
     def cursor_up(self):
         """Increase cursor idx by 1."""
         if self.curr_cursor_idx < self.num_cursor_positions:
+            self.audio.play_sfx("menu_select")
             self.curr_cursor_idx += 1
 
     def cursor_down(self):
         """Decrease cursor idx by 1."""
         if self.curr_cursor_idx > 1:
+            self.audio.play_sfx("menu_select")
             self.curr_cursor_idx -= 1

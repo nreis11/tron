@@ -1,3 +1,5 @@
+COLORS = ["#CF1FDE", "#33cc33", "#ff0000", "#E3E329", "#40BBE3"]
+
 EAST = 0
 NORTH = 90
 WEST = 180

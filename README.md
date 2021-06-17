@@ -1,18 +1,18 @@
 # TurtleTron
 
-<!-- ![main menu](images/screenshots/main_menu.png?raw=true =800x600 "Main Menu") -->
-<!-- ![gameplay](images/screenshots/gameplay.png?raw=true =800x600 "Gameplay") -->
+<!-- ![main menu](images/screenshots/main_menu.png?raw=true =1024x649 "Main Menu") -->
+<!-- ![gameplay](images/screenshots/gameplay.png?raw=true =1024x649 "Gameplay") -->
 
 Click the image for a video demo
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=w9NLE6MrQSg
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=xICcgzB-yek
 " target="_blank"><img src="images/screenshots/main_menu.png?raw=true" 
 alt="IMAGE main-menu" width="1024" height="649" border="0" /></a>
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=w9NLE6MrQSg
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=xICcgzB-yek
 " target="_blank"><img src="images/screenshots/gameplay.png?raw=true" 
 alt="IMAGE gameplay" width="1024" height="649" border="0" /></a>
 
-<!-- https://youtu.be/w9NLE6MrQSg -->
+<!-- https://youtu.be/xICcgzB-yek -->
 
 ## Synopsis
 
@@ -23,7 +23,7 @@ The object of the game is to stay alive the longest by not crashing into the wal
 - AI support
 - Multiple grid sizes
 
-[In-Game Video](http://www.youtube.com/watch?v=w9NLE6MrQSg)
+[In-Game Video](http://www.youtube.com/watch?v=xICcgzB-yek)
 
 ## Installation
 

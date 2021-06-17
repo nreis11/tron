@@ -24,19 +24,16 @@ class Game(object):
     def __init__(
         self,
         grid_size=3,
-        relative_controls=False,
         humans=0,
         bots=2,
         testing=False,
         difficulty=1,
     ):
-        self.grid_size = grid_size
         self.width = 800
         self.height = 600
-        self.determine_grid_size()
+        self.determine_grid_size(grid_size)
         self.create_screen()
         self.audio = Sound()
-        self.relative_controls = relative_controls
         self.out_of_bounds_length = 50
         self.x_boundary = (self.width // 2) - self.out_of_bounds_length
         self.y_boundary = (self.height // 2) - self.out_of_bounds_length
@@ -50,10 +47,10 @@ class Game(object):
         self.testing = testing
         self.create_assets()
 
-    def determine_grid_size(self):
-        if self.grid_size == 2:
+    def determine_grid_size(self, grid_size):
+        if grid_size == 2:
             self.width, self.height = (1024, 768)
-        elif self.grid_size == 3:
+        elif grid_size == 3:
             self.width, self.height = (1280, 960)
 
     def create_grid(self):
@@ -70,8 +67,7 @@ class Game(object):
         self.screen.tracer(0)
 
     def create_border(self):
-        """Border is drawn from the width and height, starting in upper
-        right hand corner. Each side is 50 pixels from the edge of the screen.
+        """Border is drawn from the width and height, starting in upper right hand corner.
         The border coordinates will be used for border detection as well."""
         self.border_pen.setposition(self.x_boundary, self.y_boundary)
         self.border_pen.pendown()
@@ -90,13 +86,14 @@ class Game(object):
         self.border_pen.penup()
 
     def get_random_coord(self):
-        """Generates random coordinate within playable area with 100 px padding from boundary"""
-        x = random.randint(-(self.x_boundary - 100), (self.x_boundary - 100))
-        y = random.randint(-(self.y_boundary - 100), (self.y_boundary - 100))
+        """Generates random coordinate within playable area with buffer from boundary"""
+        buffer = 100
+        x = random.randint(-(self.x_boundary - buffer), (self.x_boundary - buffer))
+        y = random.randint(-(self.y_boundary - buffer), (self.y_boundary - buffer))
         return (x, y)
 
     def position_range_adder(self, player):
-        """Calculates and collects all missing positions given prev and current position."""
+        """Calculates and collects all missing positions given prev and current position. Returns grid coordinates."""
         positions = []
 
         def get_missing_positions(prev, curr, step):
@@ -126,16 +123,14 @@ class Game(object):
 
     def create_player(self):
         """P1 is blue, P2 is Yellow, P3 is Red, P4 is Green, P5 is Purple."""
-        colors = ["#CF1FDE", "#33cc33", "#ff0000", "#E3E329", "#40BBE3"]
-
         for i in range(self.humans):
             x, y = self.get_random_coord()
-            self.players.append(Player("P" + str(i + 1), x, y, colors.pop()))
+            self.players.append(Player("P" + str(i + 1), x, y, constants.COLORS.pop()))
 
         for i in range(self.bots):
             x, y = self.get_random_coord()
             self.players.append(
-                Ai("COM" + str(i + 1), x, y, colors.pop(), self.difficulty)
+                Ai("COM" + str(i + 1), x, y, constants.COLORS.pop(), self.difficulty)
             )
 
     def create_particles(self):
@@ -148,22 +143,6 @@ class Game(object):
         for particle in self.particles:
             particle.change_color(player)
             particle.explode(player.xcor(), player.ycor())
-
-    def set_relative_keyboard_bindings(self):
-        """Maps relative controls to player movement."""
-        # Set P1 keyboard bindings
-        if self.humans >= 1:
-            turtle.onkeypress(self.players[0].turn_left, "a")
-            turtle.onkeypress(self.players[0].turn_right, "d")
-            turtle.onkeypress(self.players[0].accelerate, "w")
-            turtle.onkeypress(self.players[0].decelerate, "s")
-
-        # Set P2 keyboard bindings
-        if self.humans >= 2:
-            turtle.onkeypress(self.players[1].turn_left, "Left")
-            turtle.onkeypress(self.players[1].turn_right, "Right")
-            turtle.onkeypress(self.players[1].accelerate, "Up")
-            turtle.onkeypress(self.players[1].decelerate, "Down")
 
     def set_abs_keyboard_bindings(self):
         """Maps absolute controls to player movement."""
@@ -301,7 +280,7 @@ class Game(object):
 
         while self.game_on:
             # Set controls based on menu setting
-            self.set_relative_keyboard_bindings() if self.relative_controls else self.set_abs_keyboard_bindings()
+            self.set_abs_keyboard_bindings()
             # Activate key mappings
             self.screen.listen()
             # Set players into motion and add converted coords to positions

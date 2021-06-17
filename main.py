@@ -69,6 +69,7 @@ class MainMenu:
         """Sets bindings depending on which screen is displayed. Either player can control cursor. """
         turtle.listen()
         curr_screen = self.get_curr_screen()
+
         if curr_screen.name == "main":
             turtle.onkeypress(curr_screen.cursor_up, "Up")
             turtle.onkeypress(curr_screen.cursor_up, "w")
@@ -105,6 +106,7 @@ class MainMenu:
     def prev_screen(self):
 
         if hasattr(self.get_curr_screen(), "text_pen"):
+            # Clear options values hack
             self.get_curr_screen().text_pen.clear()
 
         if self.screen_idx > 0:
@@ -123,24 +125,24 @@ class MainMenu:
     def handle_enter_or_space_controller(self):
         """Depending on the current screen, passes the action to its corresponding function."""
         curr_screen = self.get_curr_screen().name
-        if curr_screen == "main":
-            self.handle_enter_or_space_main()
-        elif curr_screen == "options":
-            self.handle_enter_or_space_options()
-        elif curr_screen == "controls":
-            self.handle_enter_or_space_controls()
+        handler_map = {
+            "main": self.handle_enter_or_space_main,
+            "options": self.handle_enter_or_space_options,
+            "controls": self.handle_enter_or_space_controls,
+        }
+        handler_map[curr_screen]()
 
     def handle_enter_or_space_main(self):
         """Controls how enter or space function depending on the cursor position for the main screen."""
         cursor_idx = self.get_curr_screen().curr_cursor_idx
-        if cursor_idx == 4:
+        if cursor_idx == 4:  # 1P Start
             self.screen.clear()
             self.state = self.GAME
-        elif cursor_idx == 3:
+        elif cursor_idx == 3:  # 2P Start
             self.humans = 2
             self.screen.clear()
             self.state = self.GAME
-        elif cursor_idx == 2:
+        elif cursor_idx == 2:  # Options
             self.next_screen()
         elif cursor_idx == 1:
             self.state = self.QUIT
@@ -161,7 +163,8 @@ class MainMenu:
         self.init_screen()
         self.display_controller()
         self.create_cursor()
-        self.audio.start_music("main_menu")
+        if not self.testing:
+            self.audio.start_music("main_menu")
 
     def start_menu(self):
         """Main menu loop."""
@@ -196,5 +199,5 @@ class MainMenu:
 if __name__ == "__main__":
     if sys.version_info[0] < 3:
         raise SystemExit("Python 3 required!")
-    menu = MainMenu(True)
+    menu = MainMenu()
     menu.start_menu()
