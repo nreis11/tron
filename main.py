@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-
-from game import Game
-from pen import Pen
-from sound import Sound
-from screen import Screen
-from option_screen import OptionsScreen
 import turtle
 import os
 import sys
+
+from game import Game
+from sound import Sound
+from screen import Screen
+from option_screen import OptionsScreen
 
 if os.name == "nt":
     import winsound

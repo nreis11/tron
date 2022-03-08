@@ -123,15 +123,26 @@ class Game(object):
 
     def create_player(self):
         """P1 is blue, P2 is Yellow, P3 is Red, P4 is Green, P5 is Purple."""
+        color_idx = len(constants.COLORS) - 1
         for i in range(self.humans):
             x, y = self.get_random_coord()
-            self.players.append(Player("P" + str(i + 1), x, y, constants.COLORS.pop()))
+            self.players.append(
+                Player("P" + str(i + 1), x, y, constants.COLORS[color_idx])
+            )
+            color_idx -= 1
 
         for i in range(self.bots):
             x, y = self.get_random_coord()
             self.players.append(
-                Ai("COM" + str(i + 1), x, y, constants.COLORS.pop(), self.difficulty)
+                Ai(
+                    "COM" + str(i + 1),
+                    x,
+                    y,
+                    constants.COLORS[color_idx],
+                    self.difficulty,
+                )
             )
+            color_idx -= 1
 
     def create_particles(self):
         """Populates particles list. All particles act in same manner."""
