@@ -5,6 +5,13 @@ NORTH = 90
 WEST = 180
 SOUTH = 270
 
+KEY_BINDINGS = [
+    {"EAST": "d", "NORTH": "w", "WEST": "a", "SOUTH": "s"},
+    {"EAST": "Right", "NORTH": "Up", "WEST": "Left", "SOUTH": "Down"},
+]
+
+OPPOSING_DIRS = {EAST: WEST, WEST: EAST, NORTH: SOUTH, SOUTH: NORTH}
+
 SCREENS = {
     "main": {
         "path": "images/main_menu.gif",

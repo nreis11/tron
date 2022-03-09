@@ -4,6 +4,7 @@ import turtle
 import os
 import random
 import constants
+import functools
 
 # Dev assets
 from ai import Ai
@@ -155,36 +156,31 @@ class Game(object):
             particle.change_color(player)
             particle.explode(player.xcor(), player.ycor())
 
-    def set_abs_keyboard_bindings(self):
+    def set_keyboard_bindings(self):
         """Maps absolute controls to player movement."""
+        player_bindings = constants.KEY_BINDINGS
+        for i in range(self.humans):
+            self.key_mapper(self.players[i], **player_bindings[i])
 
-        # Set P1 keyboard bindings
-        if self.humans >= 1:
-            if self.players[0].heading() == constants.EAST:
-                self.abs_key_mapper(self.players[0], "w", "s", "d", "a")
-            elif self.players[0].heading() == constants.NORTH:
-                self.abs_key_mapper(self.players[0], "a", "d", "w", "s")
-            elif self.players[0].heading() == constants.WEST:
-                self.abs_key_mapper(self.players[0], "s", "w", "a", "d")
-            elif self.players[0].heading() == constants.SOUTH:
-                self.abs_key_mapper(self.players[0], "d", "a", "s", "w")
-        # Set P2 keyboard bindings
-        if self.humans >= 2:
-            if self.players[1].heading() == constants.EAST:
-                self.abs_key_mapper(self.players[1], "Up", "Down", "Right", "Left")
-            elif self.players[1].heading() == constants.NORTH:
-                self.abs_key_mapper(self.players[1], "Left", "Right", "Up", "Down")
-            elif self.players[1].heading() == constants.WEST:
-                self.abs_key_mapper(self.players[1], "Down", "Up", "Left", "Right")
-            elif self.players[1].heading() == constants.SOUTH:
-                self.abs_key_mapper(self.players[1], "Right", "Left", "Down", "Up")
-
-    def abs_key_mapper(self, player, left, right, accel, decel):
+    def key_mapper(self, player, EAST, NORTH, WEST, SOUTH):
         """Maps args to player controls"""
-        turtle.onkeypress(player.turn_left, left)
-        turtle.onkeypress(player.turn_right, right)
-        turtle.onkeypress(player.accelerate, accel)
-        turtle.onkeypress(player.decelerate, decel)
+
+        turtle.onkeypress(
+            functools.partial(player.go_dir, dir=constants.EAST),
+            EAST,
+        )
+        turtle.onkeypress(
+            functools.partial(player.go_dir, dir=constants.NORTH),
+            NORTH,
+        )
+        turtle.onkeypress(
+            functools.partial(player.go_dir, dir=constants.WEST),
+            WEST,
+        )
+        turtle.onkeypress(
+            functools.partial(player.go_dir, dir=constants.SOUTH),
+            SOUTH,
+        )
 
     def draw_score(self):
         """This draws the score on the screen once, then clears once the score changes. Start position is upper left corner.
@@ -289,9 +285,9 @@ class Game(object):
         if not self.testing:
             self.audio.start_music("gameplay", True)
 
+        # Set controls based on menu setting
+        self.set_keyboard_bindings()
         while self.game_on:
-            # Set controls based on menu setting
-            self.set_abs_keyboard_bindings()
             # Activate key mappings
             self.screen.listen()
             # Set players into motion and add converted coords to positions

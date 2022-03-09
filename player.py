@@ -33,21 +33,15 @@ class Player(turtle.Turtle):
     def turn_right(self):
         self.right(90)
 
-    def go_east(self):
-        if self.heading != constants.WEST:
-            self.setheading(constants.EAST)
-
-    def go_north(self):
-        if self.heading != constants.SOUTH:
-            self.setheading(constants.NORTH)
-
-    def go_west(self):
-        if self.heading != constants.EAST:
-            self.setheading(constants.WEST)
-
-    def go_south(self):
-        if self.heading != constants.NORTH:
-            self.setheading(constants.SOUTH)
+    def go_dir(self, dir):
+        """Determine movement based on current heading."""
+        opposite_dir = constants.OPPOSING_DIRS[dir]
+        if self.heading() == dir:
+            self.accelerate()
+        elif self.heading() == opposite_dir:
+            self.decelerate()
+        else:
+            self.setheading(dir)
 
     def accelerate(self):
         """Min. speed = 1, Max. speed = 3."""

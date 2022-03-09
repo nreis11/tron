@@ -17,7 +17,8 @@ class Ai(player.Player):
         """Make decisions based on nearby collision. Frame delay equates to reflexes."""
         self.increment_frames()
         if self.frame >= self.frame_delay and self.is_near_collision(grid):
-            self.determine_turn(grid)()
+            dir = self.determine_turn(grid)
+            self.go_dir(dir)
             # self.randomize_min_distance_collision()
             self.reset_frames()
 
@@ -43,14 +44,14 @@ class Ai(player.Player):
         while True:
             if self.heading() == constants.EAST or self.heading() == constants.WEST:
                 if self.is_collision(grid, x, y + i):
-                    return self.go_south
+                    return constants.SOUTH
                 elif self.is_collision(grid, x, y - i):
-                    return self.go_north
+                    return constants.NORTH
             elif self.heading() == constants.NORTH or self.heading() == constants.SOUTH:
                 if self.is_collision(grid, x - i, y):
-                    return self.go_east
+                    return constants.EAST
                 elif self.is_collision(grid, x + i, y):
-                    return self.go_west
+                    return constants.WEST
             i += 1
 
     def is_near_collision(self, grid):
