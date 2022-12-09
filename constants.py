@@ -39,3 +39,5 @@ SCREENS = {
         "default_cursor_idx": 1,
     },
 }
+
+DEBUG = {"testing": True, "difficulty": 3, "bots": 2, "humans": 0, "grid_size": 1}

@@ -80,9 +80,8 @@ class Player(turtle.Turtle):
     def lose_life(self):
         """Take away one life from player"""
         self.lives -= 1
-
-    def has_lives(self):
-        return self.lives > 0
+        if self.lives == 0:
+            self.status = self.DEAD
 
     def respawn(self, x, y):
         """Respawns light cycle to random coord passed as args, resets speed to 1, and

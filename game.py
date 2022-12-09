@@ -201,35 +201,39 @@ class Game(object):
 
     def is_game_over(self):
         """Checks to see if there's only one player left."""
-        return len([player for player in self.players if player.has_lives()]) == 1
+        return (
+            len(self.players)
+            - len([player for player in self.players if player.status == player.DEAD])
+            == 1
+        )
 
     def display_winner(self):
         """Once game loop finishes, this runs to display the winner."""
         self.game_text_pen.pendown()
-        winner = [player.name for player in self.players if player.has_lives()][0]
+        winner = [
+            player.name for player in self.players if player.status == player.READY
+        ][0]
         self.game_text_pen.write(
             f"{winner} wins!", align="center", font=self.game_text_pen.font
         )
+
+    def reset_players(self, players):
+        for player in players:
+            player.clear_lightcycle()
+            x, y = self.get_random_coord()
+            player.respawn(x, y)
 
     def reset_grid(self):
         alive_players = [
             player for player in self.players if not player.status == player.DEAD
         ]
-        for player in alive_players:
-            player.clear_lightcycle()
-            if player.has_lives():
-                x, y = self.get_random_coord()
-                player.respawn(x, y)
-            else:
-                player.status = player.DEAD
-                if not player.is_ai:
-                    self.humans -= 1
+        self.reset_players(alive_players)
 
         # Speed up game if no humans are alive
-        if self.humans == 0:
+        humans_alive = [player for player in alive_players if not player.is_ai]
+        if not humans_alive:
             for player in alive_players:
-                if player.is_ai:
-                    player.set_speed(6)
+                player.set_speed(6)
         self.grid = self.create_grid()
 
     def countdown(self, num):
@@ -311,10 +315,11 @@ class Game(object):
                         self.end_game()
                     else:
                         self.reset_grid()
+                    break
             # Updates screen only when loop is complete
             self.screen.update()
 
 
 if __name__ == "__main__":
-    gameObj = Game(testing=False, difficulty=2, bots=2, humans=0, grid_size=2)
+    gameObj = Game(**constants.DEBUG)
     gameObj.start_game()
